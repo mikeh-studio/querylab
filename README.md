@@ -34,7 +34,10 @@ hiring materials.
 
 ### SQL workspace
 
-![Run SQL locally and inspect deterministic DuckDB results](docs/images/sql-workspace.jpg)
+The Meta demo progresses from hardware sales to return rates and net revenue, using
+fictional Quest and Ray-Ban Meta transactions. It runs offline with no LLM required.
+
+![Analyze fictional Meta hardware sales and inspect deterministic DuckDB results](docs/images/sql-workspace.jpg)
 
 ## Why execution, not LLM grading
 
@@ -142,7 +145,7 @@ The browser flow is staged:
 
 1. Select a preset company style or enter another organization.
 2. Choose a dialect, difficulty, provider, and optional context.
-3. Generate three questions over one shared dataset, or use the instant Airbnb demo.
+3. Generate three questions over one shared dataset, or try an instant Meta hardware sales or Airbnb demo.
 4. Run SQL and submit answers against visible and hidden datasets.
 5. Use **Query Doctor** for post-grade coaching or **Previous sessions** to resume work.
 

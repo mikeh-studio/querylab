@@ -56,7 +56,7 @@ function collectElements() {
     "modelOverrideFields", "modelOverrideInput", "reasoningEffortInput",
     "resetModelConfiguration", "modelStatus",
     "dismissGenerationStatus",
-    "difficultyChoices", "demoButton", "generateButton", "labView", "labCompany",
+    "difficultyChoices", "demoPanel", "demoHelp", "demoButton", "generateButton", "labView", "labCompany",
     "difficultyBadge", "questionNavigator", "engineStatus", "engineStatusLabel",
     "dialectBadge", "editorDialect",
     "companyBadge", "questionTypeBadge", "challengePosition", "challengeTitle", "businessContext",
@@ -351,7 +351,13 @@ function handleDialect() {
 }
 
 function updateDemoAvailability() {
-  elements.demoButton.hidden = !(
+  const isMeta = state.selectedCompany?.id === "meta";
+  elements.demoButton.textContent = isMeta ? "Try hardware sales demo" : "Load instant demo";
+  elements.demoButton.title = "Three fixed practice questions. Runs instantly without an LLM.";
+  elements.demoHelp.textContent = isMeta
+    ? "Quest and Ray-Ban Meta sales → returns → net revenue. Three fixed medium questions, native DuckDB, no LLM."
+    : "Three questions, one shared dataset. Native DuckDB, no LLM required.";
+  elements.demoPanel.hidden = !(
     state.selectedCompany?.demo_available && state.dialect === "duckdb" &&
     state.mode === "standard"
   );
@@ -429,7 +435,7 @@ async function generateExercise(demo) {
   const payload = {
     company: companyName,
     dialect: state.dialect,
-    difficulty: state.difficulty,
+    difficulty: demo && state.selectedCompany?.id === "meta" ? "medium" : state.difficulty,
     additional_context: elements.additionalContextInput.value.trim(),
     provider: elements.providerSelect.value,
     demo,

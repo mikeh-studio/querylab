@@ -894,3 +894,19 @@ def test_history_cannot_be_cleared_during_generation(tmp_path) -> None:
 
     assert response.status_code == 409
     assert "generation" in response.json()["detail"]
+
+
+def test_meta_demo_uses_hardware_pack_and_fixed_medium_difficulty(tmp_path):
+    application = create_app(
+        history_repository=SQLiteHistoryRepository(tmp_path / "meta.db")
+    )
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/exercises",
+            json=exercise_payload(company="Meta", difficulty="hard", demo=True),
+        )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload["questions"]) == 3
+    assert {question["difficulty"] for question in payload["questions"]} == {"medium"}
+    assert "hardware" in str(payload).lower()
