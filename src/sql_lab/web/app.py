@@ -28,6 +28,7 @@ from sql_lab.config import (
 from sql_lab.engines.base import SQLExecutionError
 from sql_lab.engines.factory import SUPPORTED_DIALECTS, execution_mode
 from sql_lab.exercises import get_static_exercise_set
+from sql_lab.exercises.meta_hardware import get_meta_hardware_exercise_set
 from sql_lab.feedback import (
     QueryDoctorError,
     QueryDoctorFeedback,
@@ -86,9 +87,9 @@ COMPANIES = (
         "name": "Meta",
         "monogram": "M",
         "logo_path": "/assets/brands/meta.svg",
-        "description": "Social graphs, sessions, engagement, messaging, and ads.",
+        "description": "Hardware sales, returns, engagement, social graphs, and ads.",
         "accent": "blue",
-        "demo_available": False,
+        "demo_available": True,
     },
     {
         "id": "uber",
@@ -209,13 +210,23 @@ def _default_exercise_factory(
     request: ExerciseRequest, provider_name: str, demo: bool
 ) -> ExerciseSet:
     if demo:
-        exercise_set = get_static_exercise_set()
+        exercise_set = (
+            get_meta_hardware_exercise_set()
+            if request.company.casefold() == "meta"
+            else get_static_exercise_set()
+        )
         return exercise_set.model_copy(
             update={
                 "company": request.company,
                 "dialect": request.dialect,
                 "questions": [
-                    question.model_copy(update={"difficulty": request.difficulty})
+                    question.model_copy(
+                        update={
+                            "difficulty": question.difficulty
+                            if request.company.casefold() == "meta"
+                            else request.difficulty
+                        }
+                    )
                     for question in exercise_set.questions
                 ],
             }
@@ -745,10 +756,10 @@ def create_app(
                 status_code=400,
                 detail=f"{payload.dialect.value} is not available in this lab.",
             )
-        if payload.demo and payload.company.casefold() != "airbnb":
+        if payload.demo and payload.company.casefold() not in {"airbnb", "meta"}:
             raise HTTPException(
                 status_code=400,
-                detail="The bundled demo exercise is available for Airbnb only.",
+                detail="The bundled demo exercise is available for Airbnb and Meta only.",
             )
         if payload.demo and payload.dialect is not Dialect.DUCKDB:
             raise HTTPException(

@@ -111,6 +111,14 @@
           <div id="selectedCompanySummary" class="selected-company"></div>
         </div>
 
+        <div id="demoPanel" class="generation-actions demo-panel" hidden>
+          <div>
+            <strong>Explore a ready-made interview</strong>
+            <p id="demoHelp">Three questions, one shared dataset. Runs instantly without an LLM.</p>
+          </div>
+          <button id="demoButton" class="button secondary" type="button">Load instant demo</button>
+        </div>
+
         <div class="config-card">
           <div class="choice-field" role="group" aria-labelledby="interviewModeLabel">
             <div id="interviewModeLabel" class="choice-label">Interview mode</div>
@@ -264,9 +272,6 @@
               <p>Three questions will share one schema and the same visible and hidden datasets.</p>
             </div>
             <div class="generation-buttons">
-              <button id="demoButton" class="button secondary" type="button" hidden>
-                Load instant demo
-              </button>
               <button id="generateButton" class="button primary" type="button">
                 Generate 3 questions
                 <span aria-hidden="true">✦</span>
