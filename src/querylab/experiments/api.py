@@ -17,6 +17,7 @@ from querylab.experiments.models import (
 )
 from querylab.experiments.store import ExperimentStore
 from querylab.experiments.serialization import display_json
+from querylab.experiments.comparison import CompareQueries, compare_queries
 from querylab.exercises import get_static_exercise
 from querylab.generation.schema import make_strict_output_schema
 from querylab.llm import create_provider, LLMProviderError
@@ -90,5 +91,11 @@ def experiment_router(store: ExperimentStore, settings: Settings) -> APIRouter:
     @router.post("/api/experiments/{experiment_id}/run")
     def run(experiment_id: str, payload: RunQuery):
         return call(lambda: display_json(asdict(store.run(experiment_id, payload.sql))))
+
+    @router.post("/api/experiments/{experiment_id}/compare")
+    def compare(experiment_id: str, payload: CompareQueries):
+        return call(
+            lambda: display_json(compare_queries(store, experiment_id, payload))
+        )
 
     return router

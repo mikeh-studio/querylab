@@ -31,3 +31,6 @@ th { background: #17212d; position: sticky; top: 0; }
 #status { margin-top: 0; color: #87dfb9; } #status.error { color: #ffb1ab; }
 [hidden] { display: none !important; }
 @media(max-width: 760px) { main { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #29313c; } .workspace { padding: 24px; } header { padding: 20px 24px; } }
+
+input[type="checkbox"] { width: auto; margin-right: 8px; }
+#comparisonResults > section { border-top: 1px solid #29313c; padding-block: 10px; }

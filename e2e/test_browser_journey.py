@@ -156,3 +156,28 @@ def test_exploration_save_reload_and_read_only(live_server: str) -> None:
         page.set_viewport_size({"width": 390, "height": 844})
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         browser.close()
+
+
+def test_compare_saved_queries(live_server: str) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page()
+        page.goto(live_server + "/explore")
+        page.get_by_role("button", name="Use offline dataset").click()
+        expect(page.locator("#name")).to_have_text("Orders and customers")
+        for name, sql in [
+            ("All", "SELECT * FROM customers"),
+            ("Filtered", "SELECT * FROM customers LIMIT 1"),
+        ]:
+            page.locator("#queryName").fill(name)
+            page.locator("#sql").fill(sql)
+            page.get_by_role("button", name="Save query", exact=True).click()
+            expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("button", name="Compare queries", exact=True).click()
+        expect(page.locator("#comparisonResults")).to_contain_text(
+            "Differs from baseline"
+        )
+        expect(page.locator("#comparisonResults")).to_contain_text(
+            "not a correctness judgment"
+        )
+        browser.close()

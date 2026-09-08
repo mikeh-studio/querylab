@@ -360,3 +360,12 @@ and limits each database operation to five seconds and 256 MB of database memory
 Results above 500 rows are rejected rather than silently truncated. Use LIMIT or
 aggregation for larger datasets. Dataset creation accepts at most 100,000 rows.
 Uploads and external connections are not implemented yet.
+
+### Compare SQL variants
+
+Save two to six named queries in an experiment, select them under **Compare saved
+queries**, and choose ordering and absolute numeric tolerance rules. The first
+selected query is the baseline. Each query runs against the same fixed snapshot;
+outputs, column/row differences and execution errors are shown separately.
+Agreement is not a correctness judgment. Comparison uses full results under the
+500-row limit, preserving duplicate and NULL semantics; it never compares SQL text.
