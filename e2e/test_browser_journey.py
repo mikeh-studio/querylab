@@ -181,3 +181,44 @@ def test_compare_saved_queries(live_server: str) -> None:
             "not a correctness judgment"
         )
         browser.close()
+
+
+def test_evaluation_reference_reports_and_run_comparison(live_server: str) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(live_server + "/explore")
+        page.get_by_role("button", name="Use offline dataset").click()
+        expect(page.locator("#name")).to_have_text("Orders and customers")
+        page.locator("#queryName").fill("Candidate")
+        page.locator("#sql").fill("SELECT count(*) AS n FROM customers")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_text("Create evaluation case", exact=True).click()
+        page.locator("#caseName").fill("Customer count")
+        page.locator("#expectation").fill("Count all customers")
+        page.locator("#referenceSql").fill("SELECT count(*) AS n FROM customers")
+        page.locator("#referenceReviewed").check()
+        page.get_by_role("button", name="Save evaluation case", exact=True).click()
+        expect(page.locator("#status")).to_contain_text("Evaluation case saved")
+        page.get_by_role("button", name="Evaluate selected queries", exact=True).click()
+        expect(page.locator("#evaluationResults")).to_contain_text("1 passed")
+        page.locator("#sql").fill("SELECT 0 AS n")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("button", name="Evaluate selected queries", exact=True).click()
+        expect(page.locator("#evaluationResults")).to_contain_text("1 failed")
+        page.get_by_role("button", name="Compare runs", exact=True).click()
+        expect(page.locator("#evaluationResults")).to_contain_text(
+            "passed → failed — regression"
+        )
+        page.reload()
+        page.locator("#evaluationCase").select_option(index=1)
+        expect(page.locator("#laterRun option")).to_have_count(2)
+        page.get_by_role("button", name="Show selected run", exact=True).click()
+        expect(page.locator("#evaluationResults")).to_contain_text("1 failed")
+        page.screenshot(path="/tmp/querylab-evaluation.png", full_page=True)
+        assert not errors
+        browser.close()
