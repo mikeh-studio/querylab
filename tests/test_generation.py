@@ -7,29 +7,29 @@ from typing import Any
 
 import pytest
 
-from sql_lab.config import Settings
-from sql_lab.exercises import get_static_exercise
-from sql_lab.exercises.static import STATIC_EXERCISE_SET
-from sql_lab.generation.generator import (
+from querylab.config import Settings
+from querylab.exercises import get_static_exercise
+from querylab.exercises.static import STATIC_EXERCISE_SET
+from querylab.generation.generator import (
     ExerciseGenerationError,
     ExerciseGenerator,
 )
-from sql_lab.generation.schema import make_strict_output_schema
-from sql_lab.llm.base import (
+from querylab.generation.schema import make_strict_output_schema
+from querylab.llm.base import (
     LLMExecutableNotFoundError,
     LLMProvider,
     LLMProviderError,
 )
-from sql_lab.llm.codex_cli import (
+from querylab.llm.codex_cli import (
     _codex_metadata,
     codex_command_with_overrides,
     resolve_codex_configuration,
 )
-from sql_lab.llm.claude_cli import _parse_claude_envelope
-from sql_lab.llm.command import CommandLLMProvider
-from sql_lab.models import Dialect, Difficulty, ExerciseRequest
-from sql_lab.models import ExerciseSet, QuestionType, RoleTrack, SessionMode
-from sql_lab.services import generate_exercise_set, validate_exercise_runtime
+from querylab.llm.claude_cli import _parse_claude_envelope
+from querylab.llm.command import CommandLLMProvider
+from querylab.models import Dialect, Difficulty, ExerciseRequest
+from querylab.models import ExerciseSet, QuestionType, RoleTrack, SessionMode
+from querylab.services import generate_exercise_set, validate_exercise_runtime
 
 
 class FakeProvider(LLMProvider):
@@ -265,7 +265,7 @@ def test_advanced_generation_uses_separate_timeout(monkeypatch) -> None:
         captured_timeout = settings.llm_timeout_seconds
         return FakeProvider(json.dumps(advanced_payload()))
 
-    monkeypatch.setattr("sql_lab.services.create_provider", fake_create_provider)
+    monkeypatch.setattr("querylab.services.create_provider", fake_create_provider)
     settings = Settings(
         llm_provider="codex",
         llm_timeout_seconds=600,
@@ -319,7 +319,7 @@ def test_cli_subprocess_failure_includes_exit_status() -> None:
 
 
 def test_missing_cli_executable_fails_clearly() -> None:
-    provider = CommandLLMProvider(("sql-lab-command-that-does-not-exist",))
+    provider = CommandLLMProvider(("querylab-command-that-does-not-exist",))
 
     with pytest.raises(LLMExecutableNotFoundError, match="not found"):
         provider.generate("prompt")

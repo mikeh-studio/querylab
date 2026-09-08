@@ -13,7 +13,9 @@ build/
 .env.*
 !.env.example
 .data-interview-lab/
-.sql-interview-lab/
+.querylab/
 *.db
 *.db-shm
 *.db-wal
+
+.sql-interview-lab/

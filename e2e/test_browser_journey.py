@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
-from sql_lab.exercises import get_static_exercise_set
+from querylab.exercises import get_static_exercise_set
 
 
 def _available_port() -> int:
@@ -29,7 +29,7 @@ def live_server(tmp_path: Path) -> Iterator[str]:
     environment = os.environ.copy()
     environment.update(
         {
-            "SQL_LAB_HISTORY_DB": str(tmp_path / "history.db"),
+            "QUERYLAB_HISTORY_DB": str(tmp_path / "history.db"),
             "PYTHONUNBUFFERED": "1",
         }
     )
@@ -38,7 +38,7 @@ def live_server(tmp_path: Path) -> Iterator[str]:
             sys.executable,
             "-m",
             "uvicorn",
-            "sql_lab.web.app:app",
+            "querylab.web.app:app",
             "--host",
             "127.0.0.1",
             "--port",
@@ -92,7 +92,7 @@ def test_instant_demo_executes_grades_and_saves_history(live_server: str) -> Non
         page.on("pageerror", lambda error: page_errors.append(str(error)))
 
         page.goto(live_server)
-        expect(page).to_have_title("SQL Interview Lab")
+        expect(page).to_have_title("QueryLab")
         expect(
             page.get_by_role("heading", name="Which company are you preparing for?")
         ).to_be_visible()

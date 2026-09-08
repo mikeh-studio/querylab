@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sql-interview-lab"
+name = "querylab"
 version = "0.9.2"
-description = "Local SQL interview practice with executable queries and deterministic grading."
+description = "Local SQL experimentation with generated datasets and deterministic evaluation."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -31,14 +31,15 @@ dev = [
 ]
 
 [project.scripts]
-sql-lab = "sql_lab.cli:app"
-data-interview-lab = "sql_lab.cli:app"
+querylab = "querylab.cli:app"
+sql-lab = "querylab.cli:app"
+data-interview-lab = "querylab.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sql_lab"]
+packages = ["src/querylab"]
 
 [tool.pytest.ini_options]
-addopts = "-ra --cov=sql_lab --cov-report=term-missing --cov-fail-under=75"
+addopts = "-ra --cov=querylab --cov-report=term-missing --cov-fail-under=75"
 filterwarnings = ["error::ResourceWarning"]
 testpaths = ["tests"]
 

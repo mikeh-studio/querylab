@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from sql_lab.engines.base import SQLExecutionError, UnsupportedDialectError
-from sql_lab.engines.duckdb_engine import DuckDBEngine
-from sql_lab.models import Exercise
+from querylab.engines.base import SQLExecutionError, UnsupportedDialectError
+from querylab.engines.duckdb_engine import DuckDBEngine
+from querylab.models import Exercise
 
 
 def test_duckdb_reset_isolates_exercises(exercise: Exercise) -> None:

@@ -5,9 +5,9 @@ from typing import Any
 
 import pytest
 
-from sql_lab.exercises import get_static_exercise
-from sql_lab.feedback import QueryDoctor, QueryDoctorError
-from sql_lab.llm.base import LLMProvider
+from querylab.exercises import get_static_exercise
+from querylab.feedback import QueryDoctor, QueryDoctorError
+from querylab.llm.base import LLMProvider
 
 
 class FakeProvider(LLMProvider):

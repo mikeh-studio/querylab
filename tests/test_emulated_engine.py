@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from sql_lab.engines.base import SQLExecutionError
-from sql_lab.engines.factory import create_engine, execution_mode
-from sql_lab.exercises import get_static_exercise_set
-from sql_lab.grading.grader import Grader
-from sql_lab.models import Dialect
+from querylab.engines.base import SQLExecutionError
+from querylab.engines.factory import create_engine, execution_mode
+from querylab.exercises import get_static_exercise_set
+from querylab.grading.grader import Grader
+from querylab.models import Dialect
 
 
 DIALECT_QUERIES = {

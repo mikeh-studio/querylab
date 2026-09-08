@@ -1,5 +1,5 @@
-from sql_lab.exercises.meta_hardware import get_meta_hardware_exercise_set
-from sql_lab.grading.grader import Grader
+from querylab.exercises.meta_hardware import get_meta_hardware_exercise_set
+from querylab.grading.grader import Grader
 
 
 def test_hardware_questions_execute_on_both_datasets():
