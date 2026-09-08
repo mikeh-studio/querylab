@@ -1,9 +1,10 @@
 # QueryLab development roadmap
 
 QueryLab brings generated and real data into a SQL exploration and evaluation workspace.
-This document describes future work; the current application remains exercise-based.
+Saved datasets and free exploration are implemented alongside interview practice.
+Query comparison and evaluation are the next two slices; uploads and connections follow.
 
-## First slice: saved datasets and free exploration
+## Slice 1: saved datasets and free exploration (implemented)
 
 Reuse the existing schema/data models and DuckDB execution boundary. Add a dataset-only
 workflow that does not require questions, reference SQL, or a grading submission.

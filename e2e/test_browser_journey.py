@@ -130,3 +130,29 @@ def test_instant_demo_executes_grades_and_saves_history(live_server: str) -> Non
         browser.close()
 
     assert page_errors == []
+
+
+def test_exploration_save_reload_and_read_only(live_server: str) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.goto(live_server + "/explore")
+        page.get_by_role("button", name="Use offline dataset").click()
+        expect(page.locator("#name")).to_have_text("Orders and customers")
+        page.locator("#queryName").fill("Customer count")
+        page.locator("#sql").fill("SELECT count(*) AS customers FROM customers")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.reload()
+        expect(page.locator("#sql")).to_have_value(
+            "SELECT count(*) AS customers FROM customers"
+        )
+        page.get_by_role("button", name="Run query", exact=True).click()
+        expect(page.locator("#results tbody")).to_contain_text("5")
+        page.locator("#sql").fill("DELETE FROM customers")
+        page.get_by_role("button", name="Run query", exact=True).click()
+        expect(page.locator("#status")).to_contain_text("read-only SELECT")
+        page.screenshot(path="/tmp/querylab-exploration.png", full_page=True)
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        browser.close()
