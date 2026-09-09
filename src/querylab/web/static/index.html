@@ -8,7 +8,7 @@
       content="Practice data interviews with executable SQL and deterministic local grading."
     />
     <title>QueryLab</title>
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="/assets/brands/querylab.png" type="image/png" />
     <link rel="stylesheet" href="/assets/styles.css?v=0.9.2" />
   </head>
   <body>
@@ -17,15 +17,15 @@
     <main id="setupView" class="setup-shell">
       <header class="marketing-header">
         <a class="brand" href="#" aria-label="QueryLab home">
-          <span class="brand-mark"><span>QL</span></span>
+          <span class="brand-mark"><img src="/assets/brands/querylab.png" alt="" aria-hidden="true"></span>
           <span>
             <strong>QueryLab</strong>
             <small>Generate data · Run SQL</small>
           </span>
         </a>
         <div class="marketing-actions">
-          <a class="button ghost small workflow-active" href="/" aria-current="page">Interview practice</a>
-          <a class="button ghost small" href="/explore">Explore datasets</a>
+          <a class="button ghost small" href="/">New session</a>
+          <a class="button ghost small" href="/#recent">Recent sessions</a>
           <button id="historyButton" class="button ghost small" type="button">
             Previous sessions
           </button>
@@ -307,7 +307,7 @@
     <main id="labView" class="lab-shell" hidden>
       <header class="lab-header">
         <div class="brand compact">
-          <span class="brand-mark"><span>QL</span></span>
+          <span class="brand-mark"><img src="/assets/brands/querylab.png" alt="" aria-hidden="true"></span>
           <strong>QueryLab</strong>
         </div>
         <div class="lab-breadcrumb">
@@ -316,7 +316,7 @@
           <span>3-question set</span>
         </div>
           <div class="lab-header-actions">
-          <a class="button ghost small" href="/explore">Explore datasets</a>
+          <a class="button ghost small" href="/#recent">Recent sessions</a>
           <div id="modelStatus" class="model-status" hidden></div>
           <div id="engineStatus" class="engine-status">
             <span class="status-dot"></span><span id="engineStatusLabel">DuckDB · native</span>

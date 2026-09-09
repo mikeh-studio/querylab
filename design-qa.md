@@ -1,42 +1,45 @@
-# QueryLab design alignment QA
+# Prompt-first home design QA
 
-Final result: pass for the requested design alignment.
+final result: passed
 
-## Reference and scope
+Reviewed 2026-09-08 against the selected third composer mockup, with the user's later copy changes applied.
 
-The existing QueryLab company/setup screen and active SQL workspace are the visual
-references. The exploration entry and active experiment screens were inspected live
-in the Codex browser. This is shared-design alignment, not a content-identical clone:
-exploration intentionally has saved-query controls and dataset/comparison/evaluation tools.
+## Evidence and scope
 
-## Findings and fixes
+- Source: generated image `exec-b3890b0a-533f-4e2c-868a-babcc27c76ba.png`, 1487 × 1058 pixels.
+- Rendered route: local `/explore`, also served at `/`, default dark home with the composer empty and Settings collapsed.
+- Final desktop capture: `/tmp/querylab-composer-qa/desktop-final.png`, 1487 × 1058 pixels at the matching CSS viewport and 1× capture scale.
+- Responsive capture: `/tmp/querylab-composer-qa/mobile-final.png`, full-page capture at a 390 × 844 CSS viewport. The browser's scrollbar reduces the captured content width to 375 pixels; no horizontal overflow was observed.
+- The source and final desktop capture were opened together in one comparison input. Text, controls, logos, and recent rows were readable at that size, so separate magnified crops were unnecessary.
+- Captures remain local because recent-session content comes from local history. The mock's example history differs from the rendered history; row structure, rather than those titles and dates, was compared.
 
-- The original exploration page used independent colors, fonts, buttons and branding.
-  It now imports `styles.css` and reuses the brand, background, buttons, badges,
-  question-card, pane tabs, editor gutter and action-bar classes.
-- The original feature UI stacked editing, comparison and evaluation into a long page.
-  The revised desktop layout keeps tools on the left and SQL/results on the right.
-  Tool tabs and result tabs have selected states, associated panels and keyboard navigation.
-- The initial result area was blank after dataset opening. A useful empty state now
-  explains where query output appears.
-- Workflow links now match buttons and highlight the current workflow. Headers wrap
-  on narrow screens instead of compressing or overflowing the navigation.
+## Findings and verification
 
-## Evidence and verification
+1. **P1, company logos — resolved.** The first browser capture showed insufficient contrast in the existing monochrome company assets. Restored their original colored backgrounds with white marks. The final desktop and mobile captures show recognizable, readable company choices.
+2. **P2, earlier-session rows — resolved.** The first matching desktop comparison showed legacy link styles overriding the new flex layout, crowding titles and metadata together. Removed the conflicting rule. The final desktop capture separates title, metadata, and arrow; mobile places metadata below the title.
 
-- Compared both live active-workspace captures in the same comparison input at 1280px
-  width. The reference capture was 720px tall and exploration 800px; judged shared
-  header/tab/control surfaces, not exact bottom-edge alignment. The 58px header,
-  typography, green active states, pane borders, brand and action buttons share styles.
-- Inspected exploration entry, loaded dataset, query output, comparison and evaluation
-  states. Existing assets are reused; no new image assets or substitute logos.
-- Inspected the 390px-wide mobile capture: wrapped navigation, stacked panes and no
-  page-level horizontal overflow. The schema area and result area scroll independently.
-- All four browser journeys pass: interview execution/grading, saved exploration,
-  comparison, and reviewed-reference evaluation/report reload. Keyboard tab switching
-  preserves SQL and selected candidates. This is not a full accessibility audit.
+No remaining actionable P0/P1/P2 visual differences were identified in the final comparison.
 
-## Remaining scope
+## Required fidelity surfaces
 
-No backend or data-contract changes. Uploads/connections remain deferred. Comparison
-and evaluation retain their existing reference and finite-dataset correctness boundaries.
+- **Fonts and typography:** Retained the application's sans-serif font stack and strong heading hierarchy. The longer approved heading fits on desktop and wraps on mobile. Small interface text is more compact than the generated mock; it remains readable without truncating the primary controls.
+- **Spacing and layout:** Preserved the wide composer, lower-left Settings action, lower-right green Continue button, example chips, six-column company grid, and flat recent rows. Mobile uses three company columns and wrapping chips. Content is slightly narrower than the mock; the new disclosure adds intentional vertical space above the company tiles.
+- **Colors and tokens:** Dark flat surfaces, muted borders, light text, and a purposeful green primary action follow the selected direction. The mock's decorative glow is omitted in keeping with the requested restrained design.
+- **Image quality:** Uses the approved generated Q image and existing company SVG assets, with official Feather SVG icons for standard controls. No company logo was redrawn. Original colored logo tiles intentionally differ from some standalone marks in the generated mock.
+- **Copy and content:** Heading is exactly “What do you want to find out?” Company disclosure is exactly “Explore company-inspired scenarios with synthetic data generated by AI.” The section title is “Company-inspired datasets.” Settings, examples, review-before-generation, and recent-session navigation use working product controls.
+
+## Interaction coverage and limits
+
+Browser journeys exercise company presets, custom company context, clearing context, example prompts, Settings, editing the review step, mobile overflow, offline dataset creation, SQL execution, saved sessions, comparison, and evaluation. API tests use controlled provider output; no live LLM generation was performed during this change. This is visual and functional QA, not a complete accessibility audit or a claim of pixel-identical reproduction.
+
+Follow-up: practice questions are now included automatically in home-page generation, and the Settings checkbox was removed as requested. The updated browser journey verifies the submitted generation payload includes questions without opening Settings. All five browser journeys and the 17 experiment tests passed after this adjustment. The default home composition is unchanged.
+
+Latest adjustment: added an unchecked “Generate data only” checkbox directly beneath the composer, beside a sentence explaining the default. The review step reflects either choice. All five browser journeys passed again, checking that data-only requests disable both guided questions and prompt-based question inference. The mobile capture at `/tmp/querylab-unified-mobile.png` shows the explanatory copy wrapping above the checkbox without horizontal overflow. Its error toast is an intentionally intercepted provider response used by the test.
+
+## Completed checks
+
+- [x] Compare selected target with rendered desktop.
+- [x] Fix logo contrast and recent-row layout; recapture and compare.
+- [x] Inspect responsive layout and verify no horizontal overflow.
+- [x] Preserve the exact approved copy.
+- [x] Restore the user's browser viewport after capture.

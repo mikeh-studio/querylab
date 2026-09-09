@@ -1,6 +1,7 @@
 """Compare candidate outputs on one fixed snapshot, without a correctness claim."""
 
 from dataclasses import asdict
+from hashlib import sha256
 import duckdb
 from pydantic import Field, model_validator
 
@@ -30,6 +31,16 @@ def compare_queries(
     store: ExperimentStore, experiment_id: str, request: CompareQueries
 ):
     experiment = store.get(experiment_id)
+
+    def verify_snapshot():
+        try:
+            digest = sha256(store.snapshot_path(experiment_id).read_bytes()).hexdigest()
+        except OSError as exc:
+            raise ValueError("Saved dataset file could not be read") from exc
+        if digest != experiment.snapshot_sha256:
+            raise ValueError("Dataset snapshot no longer matches the saved snapshot")
+
+    verify_snapshot()
     outputs = []
     results = []
     for query in request.queries:
@@ -44,6 +55,7 @@ def compare_queries(
             outputs.append(
                 {"query": query.model_dump(), "result": None, "error": str(exc)}
             )
+    verify_snapshot()
     baseline = results[0]
     for index, output in enumerate(outputs):
         result = results[index]

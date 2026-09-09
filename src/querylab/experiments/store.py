@@ -11,7 +11,12 @@ from uuid import uuid4
 import duckdb
 
 from querylab.engines.base import QueryResult
-from querylab.experiments.models import DatasetDraft, Experiment, SaveQueries
+from querylab.experiments.models import (
+    DatasetDraft,
+    Experiment,
+    SaveQueries,
+    SaveQuestions,
+)
 
 MAX_ROWS = 500
 TIMEOUT_SECONDS = 5
@@ -122,6 +127,7 @@ class ExperimentStore:
                 description=draft.description,
                 created_at=datetime.now(timezone.utc).isoformat(),
                 tables=draft.tables,
+                questions=draft.questions,
                 snapshot_sha256=sha256(path.read_bytes()).hexdigest(),
             )
             with closing(self.connect()) as connection, connection:
@@ -136,8 +142,14 @@ class ExperimentStore:
             raise
 
     def save_queries(self, experiment_id: str, update: SaveQueries) -> Experiment:
+        return self._save_content(experiment_id, update, "queries")
+
+    def save_questions(self, experiment_id: str, update: SaveQuestions) -> Experiment:
+        return self._save_content(experiment_id, update, "questions")
+
+    def _save_content(self, experiment_id, update, field) -> Experiment:
         experiment = self.get(experiment_id)
-        experiment.queries = update.queries
+        setattr(experiment, field, getattr(update, field))
         experiment.revision = update.revision + 1
         with closing(self.connect()) as connection, connection:
             changed = connection.execute(

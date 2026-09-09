@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
+import pytest
+
 from querylab.engines.base import QueryResult
 from querylab.grading.compare import compare_results
 from querylab.models import GradingConfig
@@ -57,3 +61,40 @@ def test_column_names_are_part_of_the_contract() -> None:
 
     assert not comparison.passed
     assert not comparison.columns_match
+
+
+@pytest.mark.parametrize("order", [False, True])
+@pytest.mark.parametrize(
+    "expected,actual,tolerance,passed",
+    [
+        (True, 1, 0, False),
+        (0, False, 0, False),
+        (True, True, 0, True),
+        (2**53, 2**53 + 1, 0, False),
+        (2**53 + 1, float(2**53), 0, False),
+        (2**53, Decimal(2**53), 0, True),
+        (
+            Decimal("123456789012345678901234567890.01"),
+            Decimal("123456789012345678901234567890.02"),
+            0.001,
+            False,
+        ),
+        (
+            Decimal("123456789012345678901234567890.01"),
+            Decimal("123456789012345678901234567890.02"),
+            0.02,
+            True,
+        ),
+        (float("nan"), float("nan"), 0, True),
+        (float("inf"), float("inf"), 0, True),
+        (float("inf"), float("-inf"), 0, False),
+        (10**400, float("inf"), 0, False),
+    ],
+)
+def test_numeric_types_and_precision(expected, actual, tolerance, passed, order):
+    comparison = compare_results(
+        result(("v",), (expected,)),
+        result(("v",), (actual,)),
+        GradingConfig(order_matters=order, numeric_tolerance=tolerance),
+    )
+    assert comparison.passed is passed

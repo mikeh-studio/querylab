@@ -1,8 +1,11 @@
 """Versioned experiment contracts, independent of interview questions."""
 
-from typing import Literal
+from typing import Annotated, Literal
 from pydantic import Field, model_validator
 from querylab.models import StrictModel, TableDefinition
+
+
+Question = Annotated[str, Field(min_length=1, max_length=2000)]
 
 
 class DatasetDraft(StrictModel):
@@ -10,6 +13,7 @@ class DatasetDraft(StrictModel):
     description: str = Field(min_length=1, max_length=2000)
     tables: list[TableDefinition] = Field(min_length=1, max_length=6)
     seed_sql: str = Field(min_length=1, max_length=200000)
+    questions: list[Question] = Field(default_factory=list, max_length=12)
 
     @model_validator(mode="after")
     def unique_tables(self):
@@ -34,6 +38,7 @@ class Experiment(StrictModel):
     snapshot_sha256: str
     tables: list[TableDefinition]
     queries: list[SavedQuery] = Field(default_factory=list, max_length=20)
+    questions: list[Question] = Field(default_factory=list, max_length=12)
 
 
 class SaveQueries(StrictModel):
@@ -53,5 +58,13 @@ class RunQuery(StrictModel):
 
 
 class GenerateDataset(StrictModel):
+    interpret_prompt: bool = False
+    guided: bool = False
+    question: str = Field(default="", max_length=2000)
     description: str = Field(min_length=1, max_length=4000)
     provider: Literal["codex", "claude"] = "codex"
+
+
+class SaveQuestions(StrictModel):
+    revision: int = Field(ge=1)
+    questions: list[Question] = Field(max_length=12)

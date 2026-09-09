@@ -150,3 +150,101 @@ def test_unusual_sql_values_have_json_display(store, monkeypatch):
         )
         assert response.status_code == 200
         assert response.json()["rows"] == [["nan", "1.25", "2026-01-01"]]
+
+
+def test_session_questions_preserve_queries_snapshot_and_revision(store):
+    from querylab.experiments.models import SaveQuestions, Experiment
+
+    saved = store.create(draft())
+    snapshot = store.snapshot_path(saved.id).read_bytes()
+    saved = store.save_queries(
+        saved.id,
+        SaveQueries(revision=1, queries=[dict(name="All", sql="SELECT * FROM items")]),
+    )
+    saved = store.save_questions(
+        saved.id,
+        SaveQuestions(revision=2, questions=["How many NULL values are there?"]),
+    )
+    reopened = ExperimentStore(store.root).get(saved.id)
+    assert reopened.questions == ["How many NULL values are there?"]
+    assert reopened.queries[0].sql == "SELECT * FROM items"
+    assert store.snapshot_path(saved.id).read_bytes() == snapshot
+    with pytest.raises(ValueError, match="another tab"):
+        store.save_questions(saved.id, SaveQuestions(revision=2, questions=[]))
+    assert store.get(saved.id) == reopened
+    legacy = reopened.model_dump()
+    del legacy["questions"]
+    assert Experiment.model_validate(legacy).questions == []
+
+
+def test_question_first_generation_and_question_api(store, monkeypatch):
+    monkeypatch.setenv("QUERYLAB_HISTORY_DB", str(store.root / "practice.sqlite3"))
+    question = "How many distinct values are there?"
+
+    class Provider:
+        def generate(self, prompt, *, output_schema):
+            assert question in prompt
+            assert "Include three clear practice questions" in prompt
+            generated = draft()
+            generated.questions = ["How many rows are there?"]
+            return generated.model_dump_json()
+
+    monkeypatch.setattr(
+        "querylab.experiments.api.create_provider", lambda *args: Provider()
+    )
+    with TestClient(create_app(experiment_store=store)) as client:
+        assert "What do you want to find out?" in client.get("/").text
+        saved = client.post(
+            "/api/experiments/generate",
+            json={"description": "Values", "question": question, "guided": True},
+        ).json()
+        assert saved["questions"] == [question, "How many rows are there?"]
+        path = f"/api/experiments/{saved['id']}/questions"
+        response = client.put(
+            path, json={"revision": 1, "questions": [question, "How many NULLs?"]}
+        )
+        assert response.status_code == 200
+        assert response.json()["revision"] == 2
+        assert (
+            client.put(path, json={"revision": 1, "questions": []}).status_code == 400
+        )
+        assert (
+            client.put(path, json={"revision": 2, "questions": [""]}).status_code == 422
+        )
+
+
+@pytest.mark.parametrize(
+    "idea,questions",
+    [
+        (
+            "Which customers returned within 30 days?",
+            ["Which customers returned within 30 days?"],
+        ),
+        ("Create SQL practice on joins", ["How many orders belong to each customer?"]),
+        ("Create orders and customers data", []),
+    ],
+)
+def test_unified_prompt_preserves_generated_questions(
+    store, monkeypatch, idea, questions
+):
+    monkeypatch.setenv("QUERYLAB_HISTORY_DB", str(store.root / "practice.sqlite3"))
+
+    class Provider:
+        def generate(self, prompt, *, output_schema):
+            assert "Interpret the description" in prompt
+            assert idea in prompt
+            generated = draft()
+            generated.questions = questions
+            return generated.model_dump_json()
+
+    monkeypatch.setattr(
+        "querylab.experiments.api.create_provider", lambda *args: Provider()
+    )
+    with TestClient(create_app(experiment_store=store)) as client:
+        response = client.post(
+            "/api/experiments/generate",
+            json={"description": idea, "interpret_prompt": True},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["questions"] == questions
+        assert store.get(response.json()["id"]).questions == questions

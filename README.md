@@ -17,7 +17,7 @@ The current SQL experience includes:
 - native DuckDB execution and clearly labeled warehouse-dialect emulation
 - fresh databases plus visible and hidden grading datasets
 - deterministic comparison of columns, rows, duplicates, NULLs, ordering, and numeric tolerance
-- company-first browser setup, shared datasets, and task-first prompts
+- dataset-, company-, or question-based starts in one SQL workspace
 - Standard and Advanced interview modes, including debugging and analytical-case practice
 - Query Doctor coaching only after execution and grading
 - resumable local history with append-only submissions
@@ -144,13 +144,23 @@ querylab --web
 The former `sql-lab` and `data-interview-lab` commands remain compatibility aliases.
 The Python package is now `querylab`; update imports from `sql_lab`.
 
-The browser flow is staged:
+The home page starts with **What do you want to find out?** Describe a dataset,
+ask a business question, or request SQL practice in the same prompt. Example buttons
+fill the composer; company tiles add an optional business context. The company
+section states: “Explore company-inspired scenarios with synthetic data generated
+by AI.” No real company records are supplied by these choices.
 
-1. Select a preset company style or enter another organization.
-2. Choose a dialect, difficulty, provider, and optional context.
-3. Generate three questions over one shared dataset, or try an instant Meta hardware sales or Airbnb demo.
-4. Run SQL and submit answers against visible and hidden datasets.
-5. Use **Query Doctor** for post-grade coaching or **Previous sessions** to resume work.
+Use **Settings** for the generation provider. Practice questions are included
+by default. Select **Generate data only** beneath the composer to skip questions.
+**Continue** opens a scope review
+before generation. The provider interprets your free-form prompt; inspect generated data
+and questions before relying on them. All starts open the same native DuckDB
+workspace with **Data**, **Questions**, **Compare**, and **Evaluate** tools.
+Add your own questions, save named SQL, and return through **Recent**. Correctness
+evaluation requires a separately reviewed reference.
+
+Earlier interview sessions remain available through Recent sessions and retain their
+original grading interface at `/practice`:
 
 Standard Mode provides three SQL problems. Advanced Mode adds a focus area, SQL construction,
 debugging, and an analytical case with a deterministically graded SQL deliverable. Its rubric is
@@ -344,10 +354,10 @@ See [the development roadmap](docs/roadmap.md) for the proposed first slice.
 
 ## Saved datasets and free exploration
 
-Open **Explore datasets** from the home page (or `/explore`). Describe a dataset
-and generate it using a configured local provider, or use the offline dataset.
+Use the home-page composer (`/explore` remains an alias). Describe
+a dataset and generate it using a configured local provider, or try the offline example.
 Inspect table definitions, preview rows, run SQL, and explicitly save named queries.
-Reopening a saved experiment restores its materialized data and saved SQL without
+Reopening a saved experiment restores its materialized data, saved questions, and saved SQL without
 regenerating data or requiring an interview question.
 
 Experiments are stored in an `experiments/` directory beside the configured history

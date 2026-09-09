@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from decimal import Decimal
+from fractions import Fraction
 from numbers import Real
 from typing import Any
 
@@ -40,17 +41,36 @@ def _is_numeric(value: Any) -> bool:
 def _values_equal(expected: Any, actual: Any, tolerance: float) -> bool:
     if expected is None or actual is None:
         return expected is None and actual is None
-    if _is_numeric(expected) and _is_numeric(actual):
-        expected_float = float(expected)
-        actual_float = float(actual)
-        if math.isnan(expected_float) or math.isnan(actual_float):
-            return math.isnan(expected_float) and math.isnan(actual_float)
-        return math.isclose(
-            expected_float,
-            actual_float,
-            rel_tol=0.0,
-            abs_tol=tolerance,
+    if isinstance(expected, bool) or isinstance(actual, bool):
+        return (
+            isinstance(expected, bool)
+            and isinstance(actual, bool)
+            and expected == actual
         )
+    if _is_numeric(expected) and _is_numeric(actual):
+
+        def is_nan(value):
+            return (
+                value.is_nan()
+                if isinstance(value, Decimal)
+                else isinstance(value, float) and math.isnan(value)
+            )
+
+        def is_finite(value):
+            return (
+                value.is_finite()
+                if isinstance(value, Decimal)
+                else not isinstance(value, float) or math.isfinite(value)
+            )
+
+        if is_nan(expected) or is_nan(actual):
+            return is_nan(expected) and is_nan(actual)
+        if expected == actual:
+            return True
+        if not is_finite(expected) or not is_finite(actual):
+            return False
+        # Preserve integer/decimal precision, including mixed comparisons with floats.
+        return abs(Fraction(expected) - Fraction(actual)) <= Fraction(tolerance)
     return bool(expected == actual)
 
 

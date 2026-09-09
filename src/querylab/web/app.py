@@ -558,7 +558,11 @@ def create_app(
     @application.middleware("http")
     async def disable_local_asset_cache(request: Request, call_next):
         response = await call_next(request)
-        if request.url.path == "/" or request.url.path.startswith("/assets/"):
+        if request.url.path in {
+            "/",
+            "/explore",
+            "/practice",
+        } or request.url.path.startswith("/assets/"):
             response.headers["Cache-Control"] = "no-store"
         return response
 
@@ -1244,6 +1248,10 @@ def create_app(
 
     @application.get("/")
     def index() -> FileResponse:
+        return FileResponse(STATIC_DIR / "explore.html")
+
+    @application.get("/practice", include_in_schema=False)
+    def practice() -> FileResponse:
         return FileResponse(STATIC_DIR / "index.html")
 
     @application.get("/favicon.ico", include_in_schema=False)

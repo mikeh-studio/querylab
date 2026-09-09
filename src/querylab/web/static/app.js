@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderDialects();
     renderRoleTracks();
     renderModelConfiguration();
+    const resumeId = new URLSearchParams(location.search).get("resume");
+    if (resumeId) await resumeHistory(resumeId);
   } catch (error) {
     showToast(error.message, true);
   }

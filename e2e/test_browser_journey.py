@@ -91,7 +91,7 @@ def test_instant_demo_executes_grades_and_saves_history(live_server: str) -> Non
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.on("pageerror", lambda error: page_errors.append(str(error)))
 
-        page.goto(live_server)
+        page.goto(live_server + "/practice")
         expect(page).to_have_title("QueryLab")
         expect(
             page.get_by_role("heading", name="Which company are you preparing for?")
@@ -137,7 +137,7 @@ def test_exploration_save_reload_and_read_only(live_server: str) -> None:
         browser = playwright.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.goto(live_server + "/explore")
-        page.get_by_role("button", name="Use offline dataset").click()
+        page.get_by_role("button", name="Try an offline example").click()
         expect(page.locator("#name")).to_have_text("Orders and customers")
         page.locator("#queryName").fill("Customer count")
         page.locator("#sql").fill("SELECT count(*) AS customers FROM customers")
@@ -159,12 +159,59 @@ def test_exploration_save_reload_and_read_only(live_server: str) -> None:
         browser.close()
 
 
+def test_new_query_and_candidate_selection_preserve_saved_work(
+    live_server: str,
+) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page()
+        page.goto(live_server)
+        page.get_by_role("button", name="Try an offline example").click()
+        expect(page.locator("#name")).to_have_text("Orders and customers")
+        page.locator("#queryName").fill("Query 2")
+        page.locator("#sql").fill("SELECT 1 AS original")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.locator("#newQuery").click()
+        expect(page.locator("#queryName")).not_to_have_value("Query 2")
+        page.locator("#sql").fill("SELECT 2 AS second")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.locator("#savedQueries").select_option(label="Query 2")
+        expect(page.locator("#sql")).to_have_value("SELECT 1 AS original")
+        page.locator("#newQuery").click()
+        page.locator("#sql").fill("SELECT 3 AS third")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("tab", name="Compare", exact=True).click()
+        checks = page.locator("#compareCandidates input")
+        expect(checks).to_have_count(3)
+        checks.nth(0).uncheck()
+        checks.nth(2).check()
+        page.locator("#sql").fill("SELECT 33 AS third")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        expect(checks.nth(0)).not_to_be_checked()
+        expect(checks.nth(1)).to_be_checked()
+        expect(checks.nth(2)).to_be_checked()
+        checks.nth(1).uncheck()
+        checks.nth(2).uncheck()
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        expect(page.locator("#compareCandidates input:checked")).to_have_count(0)
+        page.reload()
+        page.locator("#savedQueries").select_option(label="Query 2")
+        expect(page.locator("#sql")).to_have_value("SELECT 1 AS original")
+        expect(page.locator("#savedQueries option")).to_have_count(4)
+        browser.close()
+
+
 def test_compare_saved_queries(live_server: str) -> None:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
         page = browser.new_page()
         page.goto(live_server + "/explore")
-        page.get_by_role("button", name="Use offline dataset").click()
+        page.get_by_role("button", name="Try an offline example").click()
         expect(page.locator("#name")).to_have_text("Orders and customers")
         for name, sql in [
             ("All", "SELECT * FROM customers"),
@@ -197,7 +244,7 @@ def test_evaluation_reference_reports_and_run_comparison(live_server: str) -> No
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(live_server + "/explore")
-        page.get_by_role("button", name="Use offline dataset").click()
+        page.get_by_role("button", name="Try an offline example").click()
         expect(page.locator("#name")).to_have_text("Orders and customers")
         page.locator("#queryName").fill("Candidate")
         page.locator("#sql").fill("SELECT count(*) AS n FROM customers")
@@ -229,5 +276,109 @@ def test_evaluation_reference_reports_and_run_comparison(live_server: str) -> No
         page.get_by_role("button", name="Show selected run", exact=True).click()
         expect(page.locator("#evaluationResults")).to_contain_text("1 failed")
         page.screenshot(path="/tmp/querylab-evaluation.png", full_page=True)
+        assert not errors
+        browser.close()
+
+
+def test_unified_entry_questions_and_return(live_server: str) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(live_server)
+        expect(
+            page.get_by_role("heading", name="What do you want to find out?")
+        ).to_be_visible()
+        page.screenshot(path="/tmp/querylab-unified-home.png", full_page=True)
+        expect(
+            page.get_by_role("checkbox", name="Generate data only")
+        ).not_to_be_checked()
+        page.get_by_role("button", name="Settings", exact=True).click()
+        expect(page.locator("#guided")).to_have_count(0)
+        expect(page.locator("#generationSettings")).to_be_visible()
+        page.get_by_role("button", name="Settings", exact=True).click()
+        page.locator('[data-company="Airbnb"]').click()
+        expect(page.locator("#selectedContext")).to_contain_text("Airbnb context")
+        page.locator("#description").fill("Count orders per customer")
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeText")).to_contain_text("Airbnb-inspired")
+        expect(page.locator("#scopeMode")).to_contain_text(
+            "Practice questions included"
+        )
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        expect(page.locator("#description")).to_have_value("Count orders per customer")
+        page.locator('[data-company="Other"]').click()
+        page.locator("#company").fill("Hardware retailer")
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeText")).to_contain_text("Hardware retailer-inspired")
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        page.get_by_role("button", name="Remove company context").click()
+        expect(page.locator("#selectedContext")).to_be_hidden()
+        page.locator('[data-example="retention"]').click()
+        expect(page.locator("#description")).to_have_value(
+            "Which customers returned within 30 days of their first purchase?"
+        )
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeText")).not_to_contain_text("Airbnb")
+        sent = []
+
+        def capture_generation(route):
+            sent.append(route.request.post_data_json)
+            route.fulfill(
+                status=400, json={"detail": "Generation intercepted for test"}
+            )
+
+        page.route("**/api/experiments/generate", capture_generation)
+        page.get_by_role("button", name="Generate session", exact=True).click()
+        expect(page.locator("#status")).to_contain_text(
+            "Generation intercepted for test"
+        )
+        assert sent[0]["guided"] is True
+        assert sent[0]["interpret_prompt"] is True
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        page.get_by_role("checkbox", name="Generate data only").check()
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeMode")).to_contain_text(
+            "Data only · No practice questions"
+        )
+        with page.expect_response("**/api/experiments/generate"):
+            page.get_by_role("button", name="Generate session", exact=True).click()
+        assert sent[1]["guided"] is False
+        assert sent[1]["interpret_prompt"] is False
+        page.unroute("**/api/experiments/generate", capture_generation)
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        page.screenshot(path="/tmp/querylab-unified-setup.png", full_page=True)
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path="/tmp/querylab-unified-mobile.png", full_page=True)
+        page.get_by_role("button", name="Try an offline example").click()
+        expect(page.locator("#name")).to_have_text("Orders and customers")
+        page.get_by_role("tab", name="Questions", exact=True).click()
+        page.locator("#newQuestion").fill("How many customers are there?")
+        page.get_by_role("button", name="Save question", exact=True).click()
+        expect(page.locator("#sessionQuestions")).to_contain_text(
+            "How many customers are there?"
+        )
+        page.get_by_role("button", name="Work on this question").last.click()
+        page.locator("#sql").fill("SELECT count(*) AS n FROM customers")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("tab", name="Data", exact=True).click()
+        page.get_by_role("button", name="Run query", exact=True).click()
+        expect(page.locator("#results tbody")).to_contain_text("5")
+        session_url = page.url
+        page.get_by_role("link", name="Recent", exact=True).click()
+        page.get_by_role("button", name="Orders and customers", exact=False).click()
+        expect(page).to_have_url(session_url)
+        page.get_by_role("tab", name="Questions", exact=True).click()
+        expect(page.locator("#sessionQuestions")).to_contain_text(
+            "How many customers are there?"
+        )
+        expect(page.locator("#sql")).to_have_value(
+            "SELECT count(*) AS n FROM customers"
+        )
+        page.set_viewport_size({"width": 1440, "height": 1000})
+        page.screenshot(path="/tmp/querylab-unified-workspace.png", full_page=True)
         assert not errors
         browser.close()

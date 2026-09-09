@@ -2,32 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Explore datasets · QueryLab</title>
-  <link rel="icon" href="/favicon.ico">
+  <title>QueryLab</title>
+  <link rel="icon" href="/assets/brands/querylab.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css?v=0.9.2">
-  <link rel="stylesheet" href="/assets/explore.css?v=2">
-  <script src="/assets/explore.js?v=2" defer></script>
+  <link rel="stylesheet" href="/assets/explore.css?v=4">
+  <script src="/assets/explore.js?v=4" defer></script>
 </head>
 <body class="explore-page">
 <div class="app-background" aria-hidden="true"></div>
 <header class="marketing-header explore-header">
-  <a href="/" class="brand" aria-label="QueryLab home"><span class="brand-mark"><span>QL</span></span><span><strong>QueryLab</strong><small>Generate data · Run SQL</small></span></a>
-  <nav class="marketing-actions" aria-label="QueryLab workflows">
-    <a class="button ghost small" href="/">Interview practice</a>
-    <a class="button ghost small workflow-active" href="/explore" aria-current="page">Explore datasets</a>
-    <div class="local-status"><span></span> Running locally</div>
+  <a href="/" class="brand" aria-label="QueryLab home"><span class="brand-mark"><img src="/assets/brands/querylab.png" alt="" aria-hidden="true"></span><span><strong>QueryLab</strong></span></a>
+  <nav class="marketing-actions" aria-label="QueryLab navigation">
+    <a class="button ghost small workspace-home" href="/">New session</a>
+    <a class="recent-link" href="/#recent"><img class="ui-icon" src="/assets/icons/clock.svg" alt="">Recent</a>
+
   </nav>
 </header>
 <main>
-  <section id="exploreIntro" class="hero-copy explore-intro">
-    <div class="eyebrow">REAL DATA EXPERIMENTS. REAL SQL.</div>
-    <h1>Your data. Your questions.</h1>
-    <p>Generate a dataset, explore it with SQL, and compare the results.<br>Save your work and pick up where you left off.</p>
+  <section id="exploreIntro" class="explore-intro">
+    <h1>What do you want to find out?</h1>
+  </section>
+  <section id="sessionStart" class="session-start" aria-label="Start a session">
+    <form id="setupForm">
+      <div class="prompt-composer">
+        <label for="description" class="sr-only">Describe a dataset or ask a question</label>
+        <textarea id="description" rows="2" maxlength="2000" required placeholder="Describe data or ask a question…" aria-describedby="promptHelp"></textarea>
+        <div class="composer-actions">
+          <button id="settingsToggle" type="button" aria-expanded="false" aria-controls="generationSettings"><img class="ui-icon" src="/assets/icons/sliders.svg" alt="">Settings</button>
+          <button id="continue" class="button success" type="submit">Continue<img class="ui-icon" src="/assets/icons/arrow-up.svg" alt=""></button>
+        </div>
+      </div>
+      <div class="generation-choice">
+        <p id="promptHelp" class="prompt-help">Practice questions are included unless you select “Generate data only”.</p>
+        <label><input id="dataOnly" type="checkbox"> Generate data only</label>
+      </div>
+      <div id="generationSettings" class="generation-settings" hidden>
+        <label for="provider">Generation provider</label><select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select>
+      </div>
+      <div id="selectedContext" hidden><span id="contextLabel"></span><button id="clearCompany" type="button" aria-label="Remove company context"><img class="ui-icon" src="/assets/icons/x.svg" alt=""></button></div>
+      <div id="customCompanyFields" hidden><label for="company">Company or business context</label><input id="company" maxlength="120" placeholder="Enter a company or industry"></div>
+    </form>
+    <div class="prompt-examples" aria-label="Example prompts">
+      <button type="button" data-example="orders"><img class="ui-icon" src="/assets/icons/grid.svg" alt="">Orders &amp; refunds</button>
+      <button type="button" data-example="retention"><img class="ui-icon" src="/assets/icons/refresh-cw.svg" alt="">Customer retention</button>
+      <button type="button" data-example="practice"><img class="ui-icon" src="/assets/icons/code.svg" alt="">SQL practice</button>
+    </div>
+    <section id="scopeReview" class="session-setup" aria-label="Review session" hidden>
+      <span class="section-label">READY TO GENERATE</span><h2 tabindex="-1" id="reviewTitle">Your session</h2><p id="scopeText"></p><p id="scopeMode"></p>
+      <p class="muted">Table structure and sample rows will be generated from this scope. Review them in the workspace before interpreting results. Generation may take several minutes.</p>
+      <div class="setup-actions"><button id="editScope" class="button secondary">Edit scope</button><button id="generate" class="button success">Generate session</button></div>
+    </section>
+    <section id="companySection" class="company-section" aria-labelledby="companyHeading">
+      <h2 id="companyHeading">Company-inspired datasets</h2>
+      <p class="company-note">Explore company-inspired scenarios with synthetic data generated by AI.</p>
+      <div class="company-options" aria-label="Company choices">
+<button type="button" data-company="Airbnb" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/airbnb.svg" alt=""></span><span>Airbnb</span></button>
+<button type="button" data-company="Meta" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/meta.svg" alt=""></span><span>Meta</span></button>
+<button type="button" data-company="Uber" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/uber.svg" alt=""></span><span>Uber</span></button>
+<button type="button" data-company="Amazon" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/amazon.svg" alt=""></span><span>Amazon</span></button>
+<button type="button" data-company="Netflix" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/netflix.svg" alt=""></span><span>Netflix</span></button>
+        <button type="button" data-company="Other" aria-pressed="false"><img class="other-icon" src="/assets/icons/plus.svg" alt=""><span>Other</span></button>
+      </div>
+    </section>
+    <section id="recent" class="recent-sessions"><div class="setup-heading"><h2>Recent</h2><button id="demo" class="button ghost small">Try an offline example</button></div><div id="datasets"></div><div id="legacySessions"></div></section>
   </section>
   <div class="explore-layout">
     <aside class="explore-sidebar" aria-label="Dataset and evaluation tools">
       <div class="pane-tabs" id="toolTabs" role="tablist" aria-label="Exploration tools" hidden>
-        <button class="pane-tab active" id="datasetTab" role="tab" aria-selected="true" aria-controls="datasetTools" data-tool="datasetTools">Dataset</button>
+        <button class="pane-tab active" id="datasetTab" role="tab" aria-selected="true" aria-controls="datasetTools" data-tool="datasetTools">Data</button>
+        <button class="pane-tab" id="questionsTab" role="tab" aria-selected="false" aria-controls="questionsTools" data-tool="questionsTools" tabindex="-1">Questions</button>
         <button class="pane-tab" id="compareTab" role="tab" aria-selected="false" aria-controls="compareTools" data-tool="compareTools" tabindex="-1">Compare</button>
         <button class="pane-tab" id="evaluateTab" role="tab" aria-selected="false" aria-controls="evaluateTools" data-tool="evaluateTools" tabindex="-1">Evaluate</button>
       </div>
@@ -37,16 +80,9 @@
             <div class="question-card"><span class="section-label">DATASET</span><h1 id="name"></h1><p id="context"></p></div>
             <p id="snapshot" class="muted"></p><details open><summary>Tables &amp; schema</summary><div id="tables"></div></details>
           </div>
-          <details id="datasetChooser" open><summary id="datasetChooserLabel">Create or open a dataset</summary><div class="dataset-form">    <h1>Datasets</h1><p>Generate once. Explore the same data whenever you return.</p>
-    <label for="description">Describe your dataset</label>
-    <textarea id="description" rows="4" maxlength="4000" placeholder="Orders, payments and refunds for an online shop"></textarea>
-    <label for="provider">Local generation provider</label>
-    <select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select>
-    <button id="generate" class="button success">Generate dataset</button><button id="demo" class="button secondary">Use offline dataset</button>
-    <p class="muted">Generated data is fictional. Generation may take several minutes.</p>
-    <h2>Saved locally</h2><div id="datasets"></div>
-</div></details>
+          <details id="datasetChooser"><summary id="datasetChooserLabel">Continue your work</summary><p>Your dataset and saved SQL stay together in this session.</p><a href="/#recent" class="button ghost small">Open another session</a></details>
         </section>
+        <section id="questionsTools" role="tabpanel" aria-labelledby="questionsTab" hidden><h2>Questions for this data</h2><p>Work through a question, or switch to Data to explore freely. These prompts are not correctness checks.</p><div id="sessionQuestions"></div><label for="newQuestion">Add your own question</label><textarea id="newQuestion" rows="3" maxlength="2000" placeholder="What would you like to find out?"></textarea><button id="addQuestion" class="button secondary">Save question</button><p class="muted">To check SQL against expected behavior, create a reviewed reference in Evaluate.</p></section>
         <section id="compareTools" role="tabpanel" aria-labelledby="compareTab" hidden>        <h2>Compare saved queries</h2>
         <p>Select two to six queries. The first selected query is the comparison baseline; agreement does not establish correctness.</p>
 <button id="compare" class="button success">Compare queries</button></section>
@@ -75,14 +111,6 @@
 </section>
       </div>
     </aside>
-    <section id="exploreWelcome" class="explore-welcome">
-      <span class="section-label">ONE WORKSPACE, THREE WAYS TO WORK</span>
-      <h2>Start with a dataset.</h2>
-      <div class="welcome-step"><span class="badge native">01</span><div><h3>Explore freely</h3><p>Inspect tables and run SQL without an interview question.</p></div></div>
-      <div class="welcome-step"><span class="badge">02</span><div><h3>Compare queries</h3><p>See where different SQL queries agree or produce different results.</p></div></div>
-      <div class="welcome-step"><span class="badge">03</span><div><h3>Evaluate behavior</h3><p>Test against a reviewed reference and revisit saved runs.</p></div></div>
-      <p class="muted">Local snapshots · Saved SQL · Native DuckDB</p>
-    </section>
     <section id="experiment" class="query-pane explore-query-pane" aria-label="SQL editor and results" hidden>
       <div class="editor-toolbar"><div class="file-tab"><span class="sql-icon">SQL</span> exploration.sql</div><span class="editor-dialect">DuckDB</span></div>
       <div class="saved-query-toolbar"><label for="savedQueries">Saved query</label><select id="savedQueries"></select><button id="newQuery" class="button ghost small">New query</button></div>
@@ -101,7 +129,7 @@
       </div>
     </section>
   </div>
-  <p id="status" class="explore-status" role="status" aria-live="polite">Choose a saved dataset or create one to begin.</p>
+  <p id="status" class="explore-status" role="status" aria-live="polite"></p>
 </main>
 </body>
 </html>
