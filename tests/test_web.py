@@ -7,18 +7,18 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from sql_lab.config import Settings
-from sql_lab.exercises import get_static_exercise_set
-from sql_lab.feedback import QueryDoctorError, QueryDoctorFeedback
-from sql_lab.history import SQLiteHistoryRepository
-from sql_lab.llm.base import (
+from querylab.config import Settings
+from querylab.exercises import get_static_exercise_set
+from querylab.feedback import QueryDoctorError, QueryDoctorFeedback
+from querylab.history import SQLiteHistoryRepository
+from querylab.llm.base import (
     LLMGeneration,
     LLMProvider,
     LLMTimeoutError,
     LLMUsage,
 )
-from sql_lab.models import ExerciseRequest, ExerciseSet, SessionMode
-from sql_lab.web.app import create_app
+from querylab.models import ExerciseRequest, ExerciseSet, SessionMode
+from querylab.web.app import create_app
 
 
 class RecordingExerciseFactory:
@@ -248,7 +248,7 @@ def test_browser_shell_and_company_options_are_served(web_client) -> None:
 def test_generation_result_is_logged(web_client, caplog) -> None:
     client, _ = web_client
 
-    with caplog.at_level(logging.INFO, logger="uvicorn.error.sql_lab.generation"):
+    with caplog.at_level(logging.INFO, logger="uvicorn.error.querylab.generation"):
         created = create_session(client, mode="standard")
 
     messages = [record.getMessage() for record in caplog.records]
@@ -351,7 +351,7 @@ def test_generation_failure_is_logged(tmp_path, caplog) -> None:
     )
     with TestClient(application) as client:
         with caplog.at_level(
-            logging.WARNING, logger="uvicorn.error.sql_lab.generation"
+            logging.WARNING, logger="uvicorn.error.querylab.generation"
         ):
             response = client.post(
                 "/api/exercises",
@@ -413,7 +413,7 @@ def test_advanced_generation_streams_first_question_and_logs_usage(
             )
 
     provider = StagedProvider()
-    monkeypatch.setattr("sql_lab.services.create_provider", lambda *_: provider)
+    monkeypatch.setattr("querylab.services.create_provider", lambda *_: provider)
     repository = SQLiteHistoryRepository(tmp_path / "history.db")
     application = create_app(history_repository=repository)
 

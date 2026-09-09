@@ -1,10 +1,12 @@
-# SQL Interview Lab
+# QueryLab
 
 [![CI](https://github.com/mikeh-studio/sql-interview-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/mikeh-studio/sql-interview-lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-SQL Interview Lab is a local SQL interview-practice environment with browser and terminal
-interfaces. LLMs create exercises; DuckDB execution and deterministic comparison decide
+QueryLab is a local SQL experimentation workspace with browser and terminal
+interfaces. Its current workflow generates practice datasets and exercises, runs SQL,
+and evaluates results against visible and hidden datasets. LLMs create exercises; DuckDB execution and deterministic comparison
+decide
 whether an answer is correct.
 
 The current SQL experience includes:
@@ -20,7 +22,7 @@ The current SQL experience includes:
 - Query Doctor coaching only after execution and grading
 - resumable local history with append-only submissions
 
-SQL Interview Lab is independent and unofficial; it is not affiliated with or endorsed by
+QueryLab is independent and unofficial; it is not affiliated with or endorsed by
 any company named in the app. Company selections describe fictional interview-style
 approximations. Generated questions, schemas, and data are fictional: they are not copied from
 or claimed to reproduce real company interview questions, proprietary systems, or confidential
@@ -64,7 +66,7 @@ produce the same columns and values under the exercise's ordering and tolerance 
 ## Architecture
 
 ```text
-src/sql_lab/
+src/querylab/
 ├── cli.py                    # terminal UI and local web launcher
 ├── config.py                 # environment-backed provider configuration
 ├── models.py                 # strict exercise/request schemas
@@ -110,7 +112,7 @@ to reproduce every native warehouse semantic.
 Python 3.12 or newer is required.
 
 ```bash
-cd /path/to/sql-interview-lab
+cd /path/to/querylab
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
@@ -121,14 +123,14 @@ If needed, substitute another Python 3.12+ executable such as `python3.13`.
 ## Launch the browser interface
 
 ```bash
-sql-lab --web
+querylab --web
 ```
 
 This starts a local server at `http://127.0.0.1:8765` and opens the interface. Use a
 different port or keep the browser closed when needed:
 
 ```bash
-sql-lab --web --port 9000 --no-open
+querylab --web --port 9000 --no-open
 ```
 
 If the lab is already running, the same command reopens it. If the executable is not found,
@@ -136,10 +138,11 @@ activate the project environment first:
 
 ```bash
 source .venv/bin/activate
-sql-lab --web
+querylab --web
 ```
 
-The former `data-interview-lab` command remains available as a compatibility alias.
+The former `sql-lab` and `data-interview-lab` commands remain compatibility aliases.
+The Python package is now `querylab`; update imports from `sql_lab`.
 
 The browser flow is staged:
 
@@ -162,11 +165,12 @@ reference SQL stay server-side until **View solution** is explicitly confirmed.
 Browser sessions are saved by default to:
 
 ```text
-~/.sql-interview-lab/history.db
+~/.querylab/history.db
 ```
 
-An existing `~/.data-interview-lab/history.db` is reused in place when the primary SQL Lab path
-does not yet exist, so saved practice history survives the rename.
+Existing `~/.sql-interview-lab/history.db` and `~/.data-interview-lab/history.db`
+files are reused in that order when the QueryLab history file does not exist.
+No history is copied or moved.
 
 Saved sets contain the validated exercise, latest SQL, pass/fail state, revealed hints, solution
 state, and append-only submissions. They exclude routine run output, expected results,
@@ -183,12 +187,12 @@ saved work after a restart.
 The path and retention limit are configurable:
 
 ```bash
-export SQL_LAB_HISTORY_DB='/path/to/sql-interview-lab-history.db'
-export SQL_LAB_HISTORY_LIMIT=200
-sql-lab --web
+export QUERYLAB_HISTORY_DB='/path/to/querylab-history.db'
+export QUERYLAB_HISTORY_LIMIT=200
+querylab --web
 ```
 
-`SQL_LAB_*` variables take precedence; former `DATA_INTERVIEW_LAB_*` names remain supported
+`QUERYLAB_*` variables take precedence; `SQL_LAB_*` and then `DATA_INTERVIEW_LAB_*` names remain supported
 as compatibility fallbacks.
 
 ## Security and privacy
@@ -202,7 +206,7 @@ control. See [SECURITY.md](SECURITY.md) for full guidance.
 No LLM tool, API key, or network access is needed:
 
 ```bash
-sql-lab --static
+querylab --static
 ```
 
 Useful commands inside the shell:
@@ -236,13 +240,13 @@ codex --version
 Start an interactive generated session:
 
 ```bash
-sql-lab
+querylab
 ```
 
 Or provide the setup non-interactively:
 
 ```bash
-sql-lab \
+querylab \
   --llm codex \
   --company "Acme Health" \
   --dialect snowflake \
@@ -257,17 +261,17 @@ key is required.
 The command prefix and timeout are configurable without changing application code:
 
 ```bash
-export SQL_LAB_CODEX_COMMAND='codex exec --ephemeral --sandbox read-only --skip-git-repo-check --color never'
-export SQL_LAB_LLM_TIMEOUT=600
-export SQL_LAB_ADVANCED_LLM_TIMEOUT=1200
-sql-lab --llm codex
+export QUERYLAB_CODEX_COMMAND='codex exec --ephemeral --sandbox read-only --skip-git-repo-check --color never'
+export QUERYLAB_LLM_TIMEOUT=600
+export QUERYLAB_ADVANCED_LLM_TIMEOUT=1200
+querylab --llm codex
 ```
 
 Standard Mode defaults to 600 seconds. Each Advanced Mode call defaults to 1,200 seconds; the
 remaining questions run concurrently after Question 1 passes validation.
 
 Do not add the final prompt sentinel or `--output-schema` to
-`SQL_LAB_CODEX_COMMAND`; the adapter supplies both.
+`QUERYLAB_CODEX_COMMAND`; the adapter supplies both.
 
 ## Optional Claude CLI provider
 
@@ -275,13 +279,13 @@ If the `claude` CLI is installed and authenticated locally, select it with:
 
 ```bash
 claude --version
-sql-lab --llm claude
+querylab --llm claude
 ```
 
 Override its command prefix if needed:
 
 ```bash
-export SQL_LAB_CLAUDE_COMMAND='claude --print --no-session-persistence --permission-mode dontAsk --tools ""'
+export QUERYLAB_CLAUDE_COMMAND='claude --print --no-session-persistence --permission-mode dontAsk --tools ""'
 ```
 
 The Claude adapter also uses stdin, `shell=False`, and native JSON Schema output.
@@ -328,7 +332,12 @@ structured generation, progressive loading, local history/cache behavior, and br
 
 ## Roadmap
 
-- Python interview practice
-- persistent company packs and Practice/Interview/Review policies
-- optional API providers and native warehouse engines
-- timers, editor autocomplete, richer hidden datasets, and optional history export
+These are planned capabilities, not features of the current release:
+
+1. Generate and save datasets for free SQL exploration without an interview task.
+2. Upload CSV/Parquet files and explore them in the same local workspace.
+3. Save evaluation cases and compare multiple SQL queries across fixed datasets.
+4. Add reviewed expectations, assertions, batch reports, and run comparisons.
+5. Connect external data sources with read-only access and reproducible snapshots.
+
+See [the development roadmap](docs/roadmap.md) for the proposed first slice.

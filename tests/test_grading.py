@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from sql_lab.grading.grader import Grader
-from sql_lab.models import Exercise
+from querylab.grading.grader import Grader
+from querylab.models import Exercise
 
 
 EQUIVALENT_SQL = """
