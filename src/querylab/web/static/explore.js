@@ -19,6 +19,7 @@ async function action(work) {
 }
 function canLeave() { return !dirty || window.confirm("Discard unsaved SQL edits?"); }
 function renderResult(result, target = $("results")) {
+  if (target === $("results")) showOutput("outputPanel");
   target.replaceChildren();
   const meta = document.createElement("p"); meta.textContent = `${result.rows.length} rows · ${result.duration_ms.toFixed(1)} ms`; target.append(meta);
   const table = document.createElement("table"); const head = document.createElement("thead"); const tr = document.createElement("tr");
@@ -30,16 +31,21 @@ function renderResult(result, target = $("results")) {
 async function refreshDatasets() {
   const datasets = await api("/api/experiments"); $("datasets").replaceChildren();
   renderCaseDatasets(datasets);
-  datasets.forEach((dataset) => { const button = document.createElement("button"); button.className = "secondary dataset"; button.textContent = dataset.name; button.setAttribute("aria-current", String(current?.id === dataset.id)); button.onclick = () => { if (canLeave()) action(() => openDataset(dataset.id)); }; $("datasets").append(button); });
+  if (!datasets.length) { const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = "Your saved datasets will appear here."; $("datasets").append(empty); }
+  datasets.forEach((dataset) => { const button = document.createElement("button"); button.className = "button secondary dataset"; button.textContent = dataset.name; button.setAttribute("aria-current", String(current?.id === dataset.id)); button.onclick = () => { if (canLeave()) action(() => openDataset(dataset.id)); }; $("datasets").append(button); });
 }
 function renderQueries() {
   renderCandidates();
   $("savedQueries").replaceChildren(new Option("Choose a saved query", ""));
   current.queries.forEach((query, index) => $("savedQueries").append(new Option(query.name, index)));
 }
-function setEditor(query) { $("queryName").value = query.name; $("sql").value = query.sql; dirty = false; }
+function setEditor(query) { $("queryName").value = query.name; $("sql").value = query.sql; updateEditorLines(); dirty = false; }
 async function openDataset(id) {
   current = await api(`/api/experiments/${id}`); dirty = false;
+  document.body.classList.add("is-open");
+  $("toolTabs").hidden = false; $("datasetOverview").hidden = false;
+  $("datasetChooser").open = false;
+  selectPanel("data-tool", "datasetTools"); showOutput("outputPanel");
   $("experiment").hidden = false; $("name").textContent = current.name; $("context").textContent = current.description;
   $("snapshot").textContent = `Fixed snapshot ${current.snapshot_sha256.slice(0, 12)} · Saved ${new Date(current.created_at).toLocaleString()}`;
   $("tables").replaceChildren();
@@ -47,13 +53,15 @@ async function openDataset(id) {
     const heading = document.createElement("h2"); heading.textContent = table.name;
     const description = document.createElement("p"); description.textContent = table.description;
     const ddl = document.createElement("pre"); ddl.textContent = table.ddl;
-    const preview = document.createElement("button"); preview.className = "secondary"; preview.textContent = `Preview ${table.name}`;
+    const preview = document.createElement("button"); preview.className = "button ghost small"; preview.textContent = `Preview ${table.name}`;
     preview.onclick = () => action(async () => { renderResult(await api(`/api/experiments/${current.id}/run`, "POST", {sql: `SELECT * FROM "${table.name}" LIMIT 50`})); status(`Preview of ${table.name}.`); });
     $("tables").append(heading, description, ddl, preview);
   });
   renderQueries(); setEditor(current.queries[0] || {name: "Query 1", sql: `SELECT * FROM "${current.tables[0].name}" LIMIT 100;`});
   $("comparisonResults").replaceChildren();
-  $("results").replaceChildren(); history.replaceState(null, "", `/explore?id=${id}`); await refreshDatasets(); await refreshCases(); status("Dataset opened. SQL runs against this fixed snapshot.");
+  $("results").replaceChildren();
+  const empty = document.createElement("div"); empty.className = "result-placeholder"; empty.textContent = "Run your query to see results."; $("results").append(empty);
+  history.replaceState(null, "", `/explore?id=${id}`); await refreshDatasets(); await refreshCases(); status("Dataset opened. SQL runs against this fixed snapshot.");
 }
 $("demo").onclick = () => { if (canLeave()) action(async () => { status("Creating offline dataset…"); const dataset = await api("/api/experiments/demo", "POST"); await openDataset(dataset.id); }); };
 $("generate").onclick = () => {
@@ -99,6 +107,7 @@ $("compare").onclick = () => action(async () => {
     if (output.result) { const table = document.createElement("div"); table.className = "output"; renderResult(output.result, table); section.append(table); }
     $("comparisonResults").append(section);
   });
+  showOutput("comparisonPanel");
   status("Comparison complete. Results reflect the saved SQL shown in the report.");
 });
 
@@ -141,6 +150,7 @@ $("createCase").onclick = () => action(async () => {
   await refreshCases(item.id); status("Evaluation case saved. Its data, reference and rules are fixed.");
 });
 function showEvaluation(report) {
+  showOutput("evaluationPanel");
   const target = $("evaluationResults"); target.replaceChildren();
   const summary = document.createElement("p"); summary.textContent = `${report.summary.passed} passed · ${report.summary.failed} failed · ${report.summary.error} execution errors · ${report.summary.invalid_case} invalid cases. DuckDB ${report.engine_version}.`;
   target.append(summary);
@@ -168,5 +178,41 @@ $("compareRuns").onclick = () => action(async () => {
   const note = document.createElement("p"); note.textContent = `Compared by candidate name and dataset. ${comparison.same_engine_version ? "Same DuckDB version." : "DuckDB versions differ; interpret changes carefully."}`; $("evaluationResults").append(note);
   comparison.changes.forEach((change) => { const row = document.createElement("p"); row.textContent = `${change.candidate} · ${change.dataset_id.slice(0, 8)}: ${change.before} → ${change.after}${change.regression ? " — regression" : change.improvement ? " — improvement" : ""}`; $("evaluationResults").append(row); });
   const details = document.createElement("details"); const summary = document.createElement("summary"); summary.textContent = "Inspect both original runs and SQL"; const body = document.createElement("pre"); body.textContent = JSON.stringify(comparison, null, 2); details.append(summary, body); $("evaluationResults").append(details);
+  showOutput("evaluationPanel");
   status("Run comparison complete. Added or removed candidates are marked absent.");
 });
+
+function selectPanel(attribute, id) {
+  const buttons = [...document.querySelectorAll(`[${attribute}]`)];
+  buttons.forEach((button) => {
+    const selected = button.getAttribute(attribute) === id;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+    $(button.getAttribute(attribute)).hidden = !selected;
+  });
+  if (attribute === "data-tool") {
+    $("querySelection").hidden = id === "datasetTools";
+    if (id !== "datasetTools") $(id).insertBefore($("querySelection"), $(id === "compareTools" ? "compare" : "evaluate"));
+  }
+}
+function showOutput(id) { selectPanel("data-result", id); }
+["data-tool", "data-result"].forEach((attribute) => {
+  const buttons = [...document.querySelectorAll(`[${attribute}]`)];
+  buttons.forEach((button, index) => {
+    button.onclick = () => selectPanel(attribute, button.getAttribute(attribute));
+    button.onkeydown = (event) => {
+      let next;
+      if (event.key === "ArrowRight") next = (index + 1) % buttons.length;
+      if (event.key === "ArrowLeft") next = (index + buttons.length - 1) % buttons.length;
+      if (event.key === "Home") next = 0;
+      if (event.key === "End") next = buttons.length - 1;
+      if (next === undefined) return;
+      event.preventDefault(); buttons[next].click(); buttons[next].focus();
+    };
+  });
+});
+function updateEditorLines() { $("exploreLines").textContent = Array.from({length: $("sql").value.split("\n").length}, (_, index) => index + 1).join("\n"); }
+$("sql").addEventListener("input", updateEditorLines);
+$("sql").addEventListener("scroll", () => { $("exploreLines").scrollTop = $("sql").scrollTop; });
+$("sql").addEventListener("keydown", (event) => { if ((event.metaKey || event.ctrlKey) && event.key === "Enter") { event.preventDefault(); $("run").click(); } });

@@ -3,47 +3,54 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Explore datasets · QueryLab</title>
-  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/explore.css">
-  <script src="/assets/explore.js" defer></script>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/styles.css?v=0.9.2">
+  <link rel="stylesheet" href="/assets/explore.css?v=2">
+  <script src="/assets/explore.js?v=2" defer></script>
 </head>
-<body>
-<header><a href="/explore" class="brand">QueryLab <span>Explore</span></a><a href="/">Interview practice</a></header>
+<body class="explore-page">
+<div class="app-background" aria-hidden="true"></div>
+<header class="marketing-header explore-header">
+  <a href="/" class="brand" aria-label="QueryLab home"><span class="brand-mark"><span>QL</span></span><span><strong>QueryLab</strong><small>Generate data · Run SQL</small></span></a>
+  <nav class="marketing-actions" aria-label="QueryLab workflows">
+    <a class="button ghost small" href="/">Interview practice</a>
+    <a class="button ghost small workflow-active" href="/explore" aria-current="page">Explore datasets</a>
+    <div class="local-status"><span></span> Running locally</div>
+  </nav>
+</header>
 <main>
-  <aside>
-    <h1>Datasets</h1><p>Generate once. Explore the same data whenever you return.</p>
+  <section id="exploreIntro" class="hero-copy explore-intro">
+    <div class="eyebrow">REAL DATA EXPERIMENTS. REAL SQL.</div>
+    <h1>Your data. Your questions.</h1>
+    <p>Generate a dataset, explore it with SQL, and compare the results.<br>Save your work and pick up where you left off.</p>
+  </section>
+  <div class="explore-layout">
+    <aside class="explore-sidebar" aria-label="Dataset and evaluation tools">
+      <div class="pane-tabs" id="toolTabs" role="tablist" aria-label="Exploration tools" hidden>
+        <button class="pane-tab active" id="datasetTab" role="tab" aria-selected="true" aria-controls="datasetTools" data-tool="datasetTools">Dataset</button>
+        <button class="pane-tab" id="compareTab" role="tab" aria-selected="false" aria-controls="compareTools" data-tool="compareTools" tabindex="-1">Compare</button>
+        <button class="pane-tab" id="evaluateTab" role="tab" aria-selected="false" aria-controls="evaluateTools" data-tool="evaluateTools" tabindex="-1">Evaluate</button>
+      </div>
+      <div class="explore-tool-scroll">
+        <section id="datasetTools" role="tabpanel" aria-labelledby="datasetTab">
+          <div id="datasetOverview" hidden><div class="challenge-meta"><span class="badge native">Native DuckDB</span><span class="badge">Saved snapshot</span></div>
+            <div class="question-card"><span class="section-label">DATASET</span><h1 id="name"></h1><p id="context"></p></div>
+            <p id="snapshot" class="muted"></p><details open><summary>Tables &amp; schema</summary><div id="tables"></div></details>
+          </div>
+          <details id="datasetChooser" open><summary id="datasetChooserLabel">Create or open a dataset</summary><div class="dataset-form">    <h1>Datasets</h1><p>Generate once. Explore the same data whenever you return.</p>
     <label for="description">Describe your dataset</label>
     <textarea id="description" rows="4" maxlength="4000" placeholder="Orders, payments and refunds for an online shop"></textarea>
     <label for="provider">Local generation provider</label>
     <select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select>
-    <button id="generate">Generate dataset</button><button id="demo" class="secondary">Use offline dataset</button>
+    <button id="generate" class="button success">Generate dataset</button><button id="demo" class="button secondary">Use offline dataset</button>
     <p class="muted">Generated data is fictional. Generation may take several minutes.</p>
     <h2>Saved locally</h2><div id="datasets"></div>
-  </aside>
-  <section class="workspace">
-    <p id="status" role="status" aria-live="polite">Choose a saved dataset or create one to begin.</p>
-    <div id="experiment" hidden>
-      <h1 id="name"></h1><p id="context"></p><p id="snapshot" class="muted"></p>
-      <details><summary>Tables and schema</summary><div id="tables"></div></details>
-      <section aria-label="Query editor">
-        <div class="toolbar"><label for="savedQueries">Saved query</label><select id="savedQueries"></select><button id="newQuery" class="secondary">New query</button></div>
-        <label for="queryName">Query name</label><input id="queryName" maxlength="120" value="Query 1">
-        <label for="sql">SQL</label><textarea id="sql" class="sql" rows="10" maxlength="20000" spellcheck="false" placeholder="SELECT * FROM your_table LIMIT 100;"></textarea>
-        <div class="toolbar"><button id="run">Run query</button><button id="save" class="secondary">Save query</button></div>
-        <p class="muted">Native DuckDB · Read-only · Up to 500 result rows. SQL edits are saved only when you choose Save query.</p>
-      </section>
-      <section aria-label="Query results"><h2>Results</h2><div id="results" class="output"></div></section>
-      <section aria-label="Compare queries">
-        <h2>Compare saved queries</h2>
+</div></details>
+        </section>
+        <section id="compareTools" role="tabpanel" aria-labelledby="compareTab" hidden>        <h2>Compare saved queries</h2>
         <p>Select two to six queries. The first selected query is the comparison baseline; agreement does not establish correctness.</p>
-        <div id="compareCandidates"></div>
-        <label><input id="orderMatters" type="checkbox"> Row order matters</label>
-        <label for="tolerance">Absolute numeric tolerance (0–1)</label>
-        <input id="tolerance" type="number" min="0" max="1" step="0.000001" value="0.000001">
-        <button id="compare">Compare queries</button>
-        <div id="comparisonResults"></div>
-      </section>
-      <section aria-label="Query evaluation">
-        <h2>Evaluate against a reviewed reference</h2>
+<button id="compare" class="button success">Compare queries</button></section>
+        <section id="evaluateTools" role="tabpanel" aria-labelledby="evaluateTab" hidden>        <h2>Evaluate against a reviewed reference</h2>
         <p>Create a fixed case, then run selected saved queries against it. Passing means matching the reviewed reference on these datasets, not proof for all possible data.</p>
         <details><summary>Create evaluation case</summary>
           <label for="caseName">Case name</label><input id="caseName" maxlength="120">
@@ -51,19 +58,50 @@
           <p>Choose up to four saved datasets with the tables needed by your reference query.</p><div id="caseDatasets"></div>
           <label for="referenceSql">Reference SQL</label><textarea id="referenceSql" class="sql" rows="5" maxlength="20000"></textarea>
           <label><input id="referenceReviewed" type="checkbox"> I reviewed this SQL and trust it as the expected behavior.</label>
-          <p class="muted">The case freezes these datasets, reference SQL, and the ordering/tolerance rules selected above. To change a case, save a new one.</p>
-          <button id="createCase">Save evaluation case</button>
+          <p class="muted">The case freezes these datasets, reference SQL, and the ordering/tolerance rules selected in Query selection. To change a case, save a new one.</p>
+          <button id="createCase" class="button success">Save evaluation case</button>
         </details>
         <label for="evaluationCase">Saved evaluation case</label><select id="evaluationCase"></select>
         <pre id="caseDetails"></pre>
-        <button id="evaluate">Evaluate selected queries</button>
-        <p class="muted">Uses the saved queries selected in Compare saved queries above. Execution errors and invalid references are recorded separately.</p>
+        <button id="evaluate" class="button success">Evaluate selected queries</button>
+        <p class="muted">Uses the saved queries selected in Query selection. Execution errors and invalid references are recorded separately.</p>
         <div class="toolbar"><label for="earlierRun">Earlier run</label><select id="earlierRun"></select><label for="laterRun">Later run</label><select id="laterRun"></select></div>
-        <button id="showRun" class="secondary">Show selected run</button><button id="compareRuns" class="secondary">Compare runs</button>
-        <div id="evaluationResults"></div>
-      </section>
-    </div>
-  </section>
+        <button id="showRun" class="button secondary">Show selected run</button><button id="compareRuns" class="button secondary">Compare runs</button>
+</section>
+        <section id="querySelection" hidden><h2>Query selection</h2><p class="muted">Choose saved queries for comparison or evaluation.</p>        <div id="compareCandidates"></div>
+        <label><input id="orderMatters" type="checkbox"> Row order matters</label>
+        <label for="tolerance">Absolute numeric tolerance (0–1)</label>
+        <input id="tolerance" type="number" min="0" max="1" step="0.000001" value="0.000001">
+</section>
+      </div>
+    </aside>
+    <section id="exploreWelcome" class="explore-welcome">
+      <span class="section-label">ONE WORKSPACE, THREE WAYS TO WORK</span>
+      <h2>Start with a dataset.</h2>
+      <div class="welcome-step"><span class="badge native">01</span><div><h3>Explore freely</h3><p>Inspect tables and run SQL without an interview question.</p></div></div>
+      <div class="welcome-step"><span class="badge">02</span><div><h3>Compare queries</h3><p>See where different SQL queries agree or produce different results.</p></div></div>
+      <div class="welcome-step"><span class="badge">03</span><div><h3>Evaluate behavior</h3><p>Test against a reviewed reference and revisit saved runs.</p></div></div>
+      <p class="muted">Local snapshots · Saved SQL · Native DuckDB</p>
+    </section>
+    <section id="experiment" class="query-pane explore-query-pane" aria-label="SQL editor and results" hidden>
+      <div class="editor-toolbar"><div class="file-tab"><span class="sql-icon">SQL</span> exploration.sql</div><span class="editor-dialect">DuckDB</span></div>
+      <div class="saved-query-toolbar"><label for="savedQueries">Saved query</label><select id="savedQueries"></select><button id="newQuery" class="button ghost small">New query</button></div>
+      <div class="query-name-field"><label for="queryName">Query name</label><input id="queryName" maxlength="120" value="Query 1"></div>
+      <div class="editor-shell"><pre id="exploreLines" class="editor-lines" aria-hidden="true">1</pre><textarea id="sql" aria-label="SQL" class="sql" maxlength="20000" spellcheck="false" placeholder="SELECT * FROM your_table LIMIT 100;"></textarea></div>
+      <div class="query-actions"><div class="shortcut-help"><kbd>⌘</kbd><kbd>Enter</kbd> to run</div><button id="run" class="button secondary">Run query</button><button id="save" class="button success">Save query</button></div>
+      <div class="pane-tabs" role="tablist" aria-label="Experiment results">
+        <button class="pane-tab active" id="outputTab" role="tab" aria-selected="true" aria-controls="outputPanel" data-result="outputPanel">Output</button>
+        <button class="pane-tab" id="comparisonOutputTab" role="tab" aria-selected="false" aria-controls="comparisonPanel" data-result="comparisonPanel" tabindex="-1">Comparison</button>
+        <button class="pane-tab" id="evaluationOutputTab" role="tab" aria-selected="false" aria-controls="evaluationPanel" data-result="evaluationPanel" tabindex="-1">Evaluation runs</button>
+      </div>
+      <div class="explore-results-scroll">
+        <section id="outputPanel" role="tabpanel" aria-labelledby="outputTab"><div id="results" class="output"><div class="result-placeholder">Run your query to see results.<small>Read-only SQL · Up to 500 rows</small></div></div></section>
+        <section id="comparisonPanel" role="tabpanel" aria-labelledby="comparisonOutputTab" hidden><div id="comparisonResults"><p class="muted">Choose saved queries in Compare to inspect their differences.</p></div></section>
+        <section id="evaluationPanel" role="tabpanel" aria-labelledby="evaluationOutputTab" hidden><div id="evaluationResults"><p class="muted">Open Evaluate to create a case or review a saved run.</p></div></section>
+      </div>
+    </section>
+  </div>
+  <p id="status" class="explore-status" role="status" aria-live="polite">Choose a saved dataset or create one to begin.</p>
 </main>
 </body>
 </html>
