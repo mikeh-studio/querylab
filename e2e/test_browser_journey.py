@@ -155,6 +155,7 @@ def test_exploration_save_reload_and_read_only(live_server: str) -> None:
         page.screenshot(path="/tmp/querylab-exploration.png", full_page=True)
         page.set_viewport_size({"width": 390, "height": 844})
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path="/tmp/querylab-aligned-mobile.png", full_page=True)
         browser.close()
 
 
@@ -173,6 +174,7 @@ def test_compare_saved_queries(live_server: str) -> None:
             page.locator("#sql").fill(sql)
             page.get_by_role("button", name="Save query", exact=True).click()
             expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("tab", name="Compare", exact=True).click()
         page.get_by_role("button", name="Compare queries", exact=True).click()
         expect(page.locator("#comparisonResults")).to_contain_text(
             "Differs from baseline"
@@ -180,6 +182,11 @@ def test_compare_saved_queries(live_server: str) -> None:
         expect(page.locator("#comparisonResults")).to_contain_text(
             "not a correctness judgment"
         )
+        page.get_by_role("tab", name="Compare", exact=True).press("ArrowRight")
+        expect(page.locator("#evaluateTab")).to_have_attribute("aria-selected", "true")
+        expect(page.locator("#querySelection")).to_be_visible()
+        expect(page.locator("#compareCandidates input:checked")).to_have_count(2)
+        expect(page.locator("#sql")).to_have_value("SELECT * FROM customers LIMIT 1")
         browser.close()
 
 
@@ -196,6 +203,7 @@ def test_evaluation_reference_reports_and_run_comparison(live_server: str) -> No
         page.locator("#sql").fill("SELECT count(*) AS n FROM customers")
         page.get_by_role("button", name="Save query", exact=True).click()
         expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("tab", name="Evaluate", exact=True).click()
         page.get_by_text("Create evaluation case", exact=True).click()
         page.locator("#caseName").fill("Customer count")
         page.locator("#expectation").fill("Count all customers")
@@ -215,6 +223,7 @@ def test_evaluation_reference_reports_and_run_comparison(live_server: str) -> No
             "passed → failed — regression"
         )
         page.reload()
+        page.get_by_role("tab", name="Evaluate", exact=True).click()
         page.locator("#evaluationCase").select_option(index=1)
         expect(page.locator("#laterRun option")).to_have_count(2)
         page.get_by_role("button", name="Show selected run", exact=True).click()
