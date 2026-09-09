@@ -1,4 +1,4 @@
-"""Interactive local SQL practice loop."""
+"""QueryLab terminal interface and local web launcher."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ from querylab.services import generate_exercise
 
 app = typer.Typer(
     add_completion=False,
-    help="Practice generated SQL interviews against a real local database.",
+    help="Local SQL experimentation with generated datasets and deterministic evaluation.",
 )
 console = Console()
 
@@ -429,7 +429,7 @@ def main(
         ),
     ] = None,
 ) -> None:
-    """Practice generated SQL interviews against a real local database."""
+    """Local SQL experimentation with generated datasets and deterministic evaluation."""
 
     try:
         if web:
