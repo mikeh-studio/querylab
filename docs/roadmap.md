@@ -6,8 +6,8 @@ together. Earlier interview sessions retain their original grading interface.
 
 ## Shared session flow
 
-Choose a starting point, refine the scope, review it, and generate a dataset with
-optional questions. Company context does not require interview practice. Users can
+Describe an idea in the shared composer, optionally choose a company context,
+review the scope, and generate a dataset with optional questions. Company context does not require interview practice. Users can
 add questions to existing data and move between Data, Questions, Compare, and
 Evaluate without regenerating the snapshot. Recent sessions links both saved
 experiments and earlier interviews. Generated prompts do not establish correctness;

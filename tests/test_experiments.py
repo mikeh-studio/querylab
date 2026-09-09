@@ -193,7 +193,7 @@ def test_question_first_generation_and_question_api(store, monkeypatch):
         "querylab.experiments.api.create_provider", lambda *args: Provider()
     )
     with TestClient(create_app(experiment_store=store)) as client:
-        assert "What would you like to start with?" in client.get("/").text
+        assert "What do you want to find out?" in client.get("/").text
         saved = client.post(
             "/api/experiments/generate",
             json={"description": "Values", "question": question, "guided": True},
@@ -211,3 +211,40 @@ def test_question_first_generation_and_question_api(store, monkeypatch):
         assert (
             client.put(path, json={"revision": 2, "questions": [""]}).status_code == 422
         )
+
+
+@pytest.mark.parametrize(
+    "idea,questions",
+    [
+        (
+            "Which customers returned within 30 days?",
+            ["Which customers returned within 30 days?"],
+        ),
+        ("Create SQL practice on joins", ["How many orders belong to each customer?"]),
+        ("Create orders and customers data", []),
+    ],
+)
+def test_unified_prompt_preserves_generated_questions(
+    store, monkeypatch, idea, questions
+):
+    monkeypatch.setenv("QUERYLAB_HISTORY_DB", str(store.root / "practice.sqlite3"))
+
+    class Provider:
+        def generate(self, prompt, *, output_schema):
+            assert "Interpret the description" in prompt
+            assert idea in prompt
+            generated = draft()
+            generated.questions = questions
+            return generated.model_dump_json()
+
+    monkeypatch.setattr(
+        "querylab.experiments.api.create_provider", lambda *args: Provider()
+    )
+    with TestClient(create_app(experiment_store=store)) as client:
+        response = client.post(
+            "/api/experiments/generate",
+            json={"description": idea, "interpret_prompt": True},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["questions"] == questions
+        assert store.get(response.json()["id"]).questions == questions

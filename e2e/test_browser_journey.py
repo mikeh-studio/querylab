@@ -241,25 +241,34 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(live_server)
         expect(
-            page.get_by_role("heading", name="What would you like to start with?")
+            page.get_by_role("heading", name="What do you want to find out?")
         ).to_be_visible()
         page.screenshot(path="/tmp/querylab-unified-home.png", full_page=True)
-        for mode in ["dataset", "company", "questions"]:
-            page.locator(f'[data-start="{mode}"]').click()
-            page.locator("#description").fill("Count orders per customer")
-            if mode == "company":
-                page.locator("#company").fill("Airbnb")
-            page.get_by_role("button", name="Review session", exact=False).click()
-            expect(page.locator("#scopeText")).to_contain_text(
-                "Count orders per customer"
-            )
-            expect(
-                page.get_by_role("button", name="Generate session", exact=True)
-            ).to_be_visible()
-            page.get_by_role("button", name="Edit scope", exact=True).click()
-            expect(page.locator("#description")).to_have_value(
-                "Count orders per customer"
-            )
+        page.get_by_role("button", name="Settings", exact=True).click()
+        page.locator("#guided").check()
+        expect(page.locator("#generationSettings")).to_be_visible()
+        page.get_by_role("button", name="Settings", exact=True).click()
+        page.locator('[data-company="Airbnb"]').click()
+        expect(page.locator("#selectedContext")).to_contain_text("Airbnb context")
+        page.locator("#description").fill("Count orders per customer")
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeText")).to_contain_text("Airbnb-inspired")
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        expect(page.locator("#description")).to_have_value("Count orders per customer")
+        page.locator('[data-company="Other"]').click()
+        page.locator("#company").fill("Hardware retailer")
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeText")).to_contain_text("Hardware retailer-inspired")
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        page.get_by_role("button", name="Remove company context").click()
+        expect(page.locator("#selectedContext")).to_be_hidden()
+        page.locator('[data-example="retention"]').click()
+        expect(page.locator("#description")).to_have_value(
+            "Which customers returned within 30 days of their first purchase?"
+        )
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeText")).not_to_contain_text("Airbnb")
+        page.get_by_role("button", name="Edit scope", exact=True).click()
         page.screenshot(path="/tmp/querylab-unified-setup.png", full_page=True)
         page.set_viewport_size({"width": 390, "height": 844})
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
@@ -280,7 +289,7 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
         page.get_by_role("button", name="Run query", exact=True).click()
         expect(page.locator("#results tbody")).to_contain_text("5")
         session_url = page.url
-        page.get_by_role("link", name="Recent sessions", exact=True).click()
+        page.get_by_role("link", name="Recent", exact=True).click()
         page.get_by_role("button", name="Orders and customers", exact=False).click()
         expect(page).to_have_url(session_url)
         page.get_by_role("tab", name="Questions", exact=True).click()

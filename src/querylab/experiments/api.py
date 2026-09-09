@@ -71,7 +71,13 @@ def experiment_router(store: ExperimentStore, settings: Settings) -> APIRouter:
                 + (
                     "Include three clear business questions answerable using these exact tables. "
                     if payload.guided
-                    else "Return an empty questions list. "
+                    else (
+                        "Interpret the description as a dataset idea, business question, or SQL practice request. "
+                        "For a business question, include the user question in questions and create data that can answer it. "
+                        "For a practice request, include three suitable questions. For a dataset-only idea, leave questions empty. "
+                        if payload.interpret_prompt
+                        else "Return an empty questions list. "
+                    )
                 )
                 + (
                     "Ensure the dataset supports this user question: "
@@ -96,7 +102,7 @@ def experiment_router(store: ExperimentStore, settings: Settings) -> APIRouter:
                 raise ValueError(
                     "Generated session did not include the requested questions. Try again."
                 )
-            if not payload.guided:
+            if not payload.guided and not payload.interpret_prompt:
                 draft.questions = []
             if payload.question:
                 draft.questions = [payload.question] + [

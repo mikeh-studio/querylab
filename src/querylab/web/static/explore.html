@@ -3,50 +3,66 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QueryLab</title>
-  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" href="/assets/brands/querylab.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css?v=0.9.2">
-  <link rel="stylesheet" href="/assets/explore.css?v=3">
-  <script src="/assets/explore.js?v=3" defer></script>
+  <link rel="stylesheet" href="/assets/explore.css?v=4">
+  <script src="/assets/explore.js?v=4" defer></script>
 </head>
 <body class="explore-page">
 <div class="app-background" aria-hidden="true"></div>
 <header class="marketing-header explore-header">
-  <a href="/" class="brand" aria-label="QueryLab home"><span class="brand-mark"><span>QL</span></span><span><strong>QueryLab</strong><small>Generate data · Run SQL</small></span></a>
+  <a href="/" class="brand" aria-label="QueryLab home"><span class="brand-mark"><img src="/assets/brands/querylab.png" alt="" aria-hidden="true"></span><span><strong>QueryLab</strong></span></a>
   <nav class="marketing-actions" aria-label="QueryLab navigation">
-    <a class="button ghost small" href="/">New session</a>
-    <a class="button ghost small" href="/#recent">Recent sessions</a>
-    <div class="local-status"><span></span> Running locally</div>
+    <a class="button ghost small workspace-home" href="/">New session</a>
+    <a class="recent-link" href="/#recent"><img class="ui-icon" src="/assets/icons/clock.svg" alt="">Recent</a>
+
   </nav>
 </header>
 <main>
-  <section id="exploreIntro" class="hero-copy explore-intro">
-    <div class="eyebrow">REAL DATA EXPERIMENTS. REAL SQL.</div>
-    <h1>What would you like to start with?</h1>
-    <p>Bring a data idea, a company context, or a question.<br>Make it real with data you can query.</p>
+  <section id="exploreIntro" class="explore-intro">
+    <h1>What do you want to find out?</h1>
   </section>
   <section id="sessionStart" class="session-start" aria-label="Start a session">
-    <div class="start-options" aria-label="Starting point">
-      <button class="start-card" data-start="dataset" aria-pressed="false"><span class="badge native">01 / DATA</span><h2>Build a dataset</h2><p>Define the tables and relationships you want to explore.</p><span class="start-example">Orders, customers, and refunds <span aria-hidden="true">↗</span></span></button>
-      <button class="start-card" data-start="company" aria-pressed="false"><span class="badge native">02 / CONTEXT</span><h2>Company focus</h2><p>Explore a realistic business scenario in a familiar setting.</p><span class="start-example">Marketplace, mobility, or hardware <span aria-hidden="true">↗</span></span></button>
-      <button class="start-card" data-start="questions" aria-pressed="false"><span class="badge native">03 / QUESTIONS</span><h2>Start with questions</h2><p>Bring a business question or choose a SQL practice topic.</p><span class="start-example">What drives repeat purchases? <span aria-hidden="true">↗</span></span></button>
-    </div>
-    <form id="setupForm" class="session-setup" hidden>
-      <div class="setup-heading"><div><span class="section-label">SHAPE YOUR SESSION</span><h2 id="setupTitle" tabindex="-1">Build a dataset</h2></div><span class="badge">Native DuckDB</span></div>
-      <div id="companyFields" hidden><label for="company">Company or domain</label><input id="company" maxlength="120" list="companyOptions" placeholder="Choose a company or enter your own"><datalist id="companyOptions"><option value="Airbnb"><option value="Meta"><option value="Uber"><option value="DoorDash"><option value="Netflix"></datalist></div>
-      <div id="questionFields" hidden><label for="questionKind">How would you like to start?</label><select id="questionKind"><option value="own">I have a business question</option><option value="topic">Generate practice questions from a topic</option></select></div>
-      <label id="descriptionLabel" for="description">Describe your dataset</label>
-      <textarea id="description" rows="3" maxlength="2000" required placeholder="Orders, customers, and refunds. Include repeat buyers and partial refunds."></textarea>
-      <p id="setupHelp" class="muted">Describe useful tables, relationships, and edge cases. You can add questions later.</p>
-      <label id="guidedChoice"><input id="guided" type="checkbox"> Include guided business questions</label>
-      <details><summary>Generation settings</summary><label for="provider">Local generation provider</label><select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select></details>
-      <div class="setup-actions"><button class="button success" type="submit">Review session <span aria-hidden="true">→</span></button><span class="muted">Fictional data · Saved locally</span></div>
+    <form id="setupForm">
+      <div class="prompt-composer">
+        <label for="description" class="sr-only">Describe a dataset or ask a question</label>
+        <textarea id="description" rows="2" maxlength="2000" required placeholder="Describe data or ask a question…" aria-describedby="promptHelp"></textarea>
+        <div class="composer-actions">
+          <button id="settingsToggle" type="button" aria-expanded="false" aria-controls="generationSettings"><img class="ui-icon" src="/assets/icons/sliders.svg" alt="">Settings</button>
+          <button id="continue" class="button success" type="submit">Continue<img class="ui-icon" src="/assets/icons/arrow-up.svg" alt=""></button>
+        </div>
+      </div>
+      <p id="promptHelp" class="prompt-help">Start from an idea. Review before generating.</p>
+      <div id="generationSettings" class="generation-settings" hidden>
+        <label for="provider">Generation provider</label><select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select>
+        <label><input id="guided" type="checkbox"> Include practice questions</label>
+      </div>
+      <div id="selectedContext" hidden><span id="contextLabel"></span><button id="clearCompany" type="button" aria-label="Remove company context"><img class="ui-icon" src="/assets/icons/x.svg" alt=""></button></div>
+      <div id="customCompanyFields" hidden><label for="company">Company or business context</label><input id="company" maxlength="120" placeholder="Enter a company or industry"></div>
     </form>
+    <div class="prompt-examples" aria-label="Example prompts">
+      <button type="button" data-example="orders"><img class="ui-icon" src="/assets/icons/grid.svg" alt="">Orders &amp; refunds</button>
+      <button type="button" data-example="retention"><img class="ui-icon" src="/assets/icons/refresh-cw.svg" alt="">Customer retention</button>
+      <button type="button" data-example="practice"><img class="ui-icon" src="/assets/icons/code.svg" alt="">SQL practice</button>
+    </div>
     <section id="scopeReview" class="session-setup" aria-label="Review session" hidden>
       <span class="section-label">READY TO GENERATE</span><h2 tabindex="-1" id="reviewTitle">Your session</h2><p id="scopeText"></p><p id="scopeMode"></p>
       <p class="muted">Table structure and sample rows will be generated from this scope. Review them in the workspace before interpreting results. Generation may take several minutes.</p>
       <div class="setup-actions"><button id="editScope" class="button secondary">Edit scope</button><button id="generate" class="button success">Generate session</button></div>
     </section>
-    <section id="recent" class="recent-sessions"><div class="setup-heading"><h2>Recent sessions</h2><button id="demo" class="button ghost small">Try an offline example</button></div><div id="datasets"></div><div id="legacySessions"></div></section>
+    <section id="companySection" class="company-section" aria-labelledby="companyHeading">
+      <h2 id="companyHeading">Company-inspired datasets</h2>
+      <p class="company-note">Explore company-inspired scenarios with synthetic data generated by AI.</p>
+      <div class="company-options" aria-label="Company choices">
+<button type="button" data-company="Airbnb" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/airbnb.svg" alt=""></span><span>Airbnb</span></button>
+<button type="button" data-company="Meta" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/meta.svg" alt=""></span><span>Meta</span></button>
+<button type="button" data-company="Uber" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/uber.svg" alt=""></span><span>Uber</span></button>
+<button type="button" data-company="DoorDash" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/doordash.svg" alt=""></span><span>DoorDash</span></button>
+<button type="button" data-company="Netflix" aria-pressed="false"><span class="tile-logo"><img src="/assets/brands/netflix.svg" alt=""></span><span>Netflix</span></button>
+        <button type="button" data-company="Other" aria-pressed="false"><img class="other-icon" src="/assets/icons/plus.svg" alt=""><span>Other</span></button>
+      </div>
+    </section>
+    <section id="recent" class="recent-sessions"><div class="setup-heading"><h2>Recent</h2><button id="demo" class="button ghost small">Try an offline example</button></div><div id="datasets"></div><div id="legacySessions"></div></section>
   </section>
   <div class="explore-layout">
     <aside class="explore-sidebar" aria-label="Dataset and evaluation tools">
@@ -111,7 +127,7 @@
       </div>
     </section>
   </div>
-  <p id="status" class="explore-status" role="status" aria-live="polite">Choose a starting point or resume a saved session.</p>
+  <p id="status" class="explore-status" role="status" aria-live="polite"></p>
 </main>
 </body>
 </html>

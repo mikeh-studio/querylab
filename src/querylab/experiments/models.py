@@ -58,6 +58,7 @@ class RunQuery(StrictModel):
 
 
 class GenerateDataset(StrictModel):
+    interpret_prompt: bool = False
     guided: bool = False
     question: str = Field(default="", max_length=2000)
     description: str = Field(min_length=1, max_length=4000)

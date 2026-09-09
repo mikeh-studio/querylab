@@ -144,17 +144,19 @@ querylab --web
 The former `sql-lab` and `data-interview-lab` commands remain compatibility aliases.
 The Python package is now `querylab`; update imports from `sql_lab`.
 
-The home page offers three ways to start a session:
+The home page starts with **What do you want to find out?** Describe a dataset,
+ask a business question, or request SQL practice in the same prompt. Example buttons
+fill the composer; company tiles add an optional business context. The company
+section states: “Explore company-inspired scenarios with synthetic data generated
+by AI.” No real company records are supplied by these choices.
 
-1. **Build a dataset:** describe tables, relationships, and edge cases; optionally include guided questions.
-2. **Company focus:** choose a company or domain and a fictional business scenario, with optional questions.
-3. **Start with questions:** enter a business question, or generate practice questions from a topic.
-
-Review the scope and generate a session. All three starts open the same native DuckDB
-workspace with **Data**, **Questions**, **Compare**, and **Evaluate** tools. Add your own
-questions without regenerating data, save named SQL, and return through **Recent sessions**.
-Generated questions are prompts, not verified correctness expectations; evaluation requires
-a separately reviewed reference. Provider selection is under **Generation settings**.
+Use **Settings** for the generation provider and optional practice questions.
+**Continue** opens a scope review before generation. The provider interprets a
+free-form prompt and includes questions when requested; inspect generated data
+and questions before relying on them. All starts open the same native DuckDB
+workspace with **Data**, **Questions**, **Compare**, and **Evaluate** tools.
+Add your own questions, save named SQL, and return through **Recent**. Correctness
+evaluation requires a separately reviewed reference.
 
 Earlier interview sessions remain available through Recent sessions and retain their
 original grading interface at `/practice`:
@@ -351,7 +353,7 @@ See [the development roadmap](docs/roadmap.md) for the proposed first slice.
 
 ## Saved datasets and free exploration
 
-Choose **Build a dataset** from the home page (`/explore` remains an alias). Describe
+Use the home-page composer (`/explore` remains an alias). Describe
 a dataset and generate it using a configured local provider, or try the offline example.
 Inspect table definitions, preview rows, run SQL, and explicitly save named queries.
 Reopening a saved experiment restores its materialized data, saved questions, and saved SQL without
