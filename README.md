@@ -332,12 +332,31 @@ structured generation, progressive loading, local history/cache behavior, and br
 
 ## Roadmap
 
-These are planned capabilities, not features of the current release:
+Saved datasets and free SQL exploration are now available. Next:
 
-1. Generate and save datasets for free SQL exploration without an interview task.
+1. Extend dataset generation controls.
 2. Upload CSV/Parquet files and explore them in the same local workspace.
 3. Save evaluation cases and compare multiple SQL queries across fixed datasets.
 4. Add reviewed expectations, assertions, batch reports, and run comparisons.
 5. Connect external data sources with read-only access and reproducible snapshots.
 
 See [the development roadmap](docs/roadmap.md) for the proposed first slice.
+
+## Saved datasets and free exploration
+
+Open **Explore datasets** from the home page (or `/explore`). Describe a dataset
+and generate it using a configured local provider, or use the offline dataset.
+Inspect table definitions, preview rows, run SQL, and explicitly save named queries.
+Reopening a saved experiment restores its materialized data and saved SQL without
+regenerating data or requiring an interview question.
+
+Experiments are stored in an `experiments/` directory beside the configured history
+database. Clearing interview history does not delete experiments. Each dataset is a
+fixed native DuckDB snapshot; query edits update metadata, not the snapshot. Python
+imports for this feature live under `querylab.experiments`.
+
+Exploration permits one read-only SELECT at a time, disables external file access,
+and limits each database operation to five seconds and 256 MB of database memory.
+Results above 500 rows are rejected rather than silently truncated. Use LIMIT or
+aggregation for larger datasets. Dataset creation accepts at most 100,000 rows.
+Uploads and external connections are not implemented yet.

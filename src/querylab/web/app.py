@@ -20,6 +20,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from querylab import __version__
+from querylab.experiments.api import experiment_router
+from querylab.experiments.store import ExperimentStore
 from querylab.config import (
     Settings,
     default_history_db_path,
@@ -511,6 +513,7 @@ def create_app(
     history_repository: HistoryRepository | None = None,
     query_reviewer: QueryReviewer | None = None,
     settings: Settings | None = None,
+    experiment_store: ExperimentStore | None = None,
 ) -> FastAPI:
     factory = exercise_factory or _default_exercise_factory
     reviewer = query_reviewer or _default_query_reviewer
@@ -540,6 +543,13 @@ def create_app(
         docs_url=None,
         redoc_url=None,
         lifespan=lifespan,
+    )
+    application.include_router(
+        experiment_router(
+            experiment_store
+            or ExperimentStore(default_history_db_path().parent / "experiments"),
+            resolved_settings,
+        )
     )
     application.state.sessions = sessions
     application.state.history = history

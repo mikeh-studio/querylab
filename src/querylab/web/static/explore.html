@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Explore datasets · QueryLab</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/explore.css">
+  <script src="/assets/explore.js" defer></script>
+</head>
+<body>
+<header><a href="/explore" class="brand">QueryLab <span>Explore</span></a><a href="/">Interview practice</a></header>
+<main>
+  <aside>
+    <h1>Datasets</h1><p>Generate once. Explore the same data whenever you return.</p>
+    <label for="description">Describe your dataset</label>
+    <textarea id="description" rows="4" maxlength="4000" placeholder="Orders, payments and refunds for an online shop"></textarea>
+    <label for="provider">Local generation provider</label>
+    <select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select>
+    <button id="generate">Generate dataset</button><button id="demo" class="secondary">Use offline dataset</button>
+    <p class="muted">Generated data is fictional. Generation may take several minutes.</p>
+    <h2>Saved locally</h2><div id="datasets"></div>
+  </aside>
+  <section class="workspace">
+    <p id="status" role="status" aria-live="polite">Choose a saved dataset or create one to begin.</p>
+    <div id="experiment" hidden>
+      <h1 id="name"></h1><p id="context"></p><p id="snapshot" class="muted"></p>
+      <details open><summary>Tables and schema</summary><div id="tables"></div></details>
+      <section aria-label="Query editor">
+        <div class="toolbar"><label for="savedQueries">Saved query</label><select id="savedQueries"></select><button id="newQuery" class="secondary">New query</button></div>
+        <label for="queryName">Query name</label><input id="queryName" maxlength="120" value="Query 1">
+        <label for="sql">SQL</label><textarea id="sql" class="sql" rows="10" maxlength="20000" spellcheck="false" placeholder="SELECT * FROM your_table LIMIT 100;"></textarea>
+        <div class="toolbar"><button id="run">Run query</button><button id="save" class="secondary">Save query</button></div>
+        <p class="muted">Native DuckDB · Read-only · Up to 500 result rows. SQL edits are saved only when you choose Save query.</p>
+      </section>
+      <section aria-label="Query results"><h2>Results</h2><div id="results" class="output"></div></section>
+    </div>
+  </section>
+</main>
+</body>
+</html>
