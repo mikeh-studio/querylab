@@ -3,6 +3,7 @@ const $ = (id) => document.getElementById(id);
 let current = null;
 let dirty = false;
 let busy = false;
+let candidateDatasetId = null;
 function status(message, error = false) { $("status").textContent = message; $("status").classList.toggle("error", error); }
 async function api(path, method = "GET", body) {
   const response = await fetch(path, {method, headers: {"Content-Type": "application/json"}, body: body === undefined ? undefined : JSON.stringify(body)});
@@ -154,17 +155,27 @@ $("save").onclick = () => action(async () => {
   if (index < 0) queries.push(query); else queries[index] = query;
   current = await api(`/api/experiments/${current.id}/queries`, "PUT", {revision: current.revision, queries}); dirty = false; renderQueries(); status("Query saved locally.");
 });
-$("newQuery").onclick = () => { if (canLeave()) setEditor({name: `Query ${current.queries.length + 1}`, sql: ""}); };
+$("newQuery").onclick = () => {
+  if (!canLeave()) return;
+  let number = 1;
+  while (current.queries.some((query) => query.name === `Query ${number}`)) number++;
+  setEditor({name: `Query ${number}`, sql: ""});
+};
 $("savedQueries").onchange = () => { const query = current.queries[Number($("savedQueries").value)]; if (query && canLeave()) setEditor(query); };
 [$("sql"), $("queryName")].forEach((el) => el.addEventListener("input", () => { dirty = true; }));
 window.addEventListener("beforeunload", (event) => { if (dirty || busy) { event.preventDefault(); event.returnValue = ""; } });
 action(async () => { const id = new URLSearchParams(location.search).get("id"); if (id) await openDataset(id); else { await refreshDatasets(); await refreshLegacySessions(); } });
 
 function renderCandidates() {
+  const previous = new Map(candidateDatasetId === current.id
+    ? [...$("compareCandidates").querySelectorAll("input")].map((input) => [input.dataset.queryName, input.checked])
+    : []);
+  candidateDatasetId = current.id;
   $("compareCandidates").replaceChildren();
   current.queries.forEach((query, index) => {
     const label = document.createElement("label"); const checkbox = document.createElement("input");
-    checkbox.type = "checkbox"; checkbox.value = index; checkbox.checked = index < 2;
+    checkbox.type = "checkbox"; checkbox.value = index; checkbox.dataset.queryName = query.name;
+    checkbox.checked = previous.has(query.name) ? previous.get(query.name) : index < 2;
     label.append(checkbox, document.createTextNode(` ${query.name}`)); $("compareCandidates").append(label);
   });
 }

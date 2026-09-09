@@ -1,4 +1,5 @@
 import pytest
+import duckdb
 from pydantic import ValidationError
 from querylab.experiments.comparison import CompareQueries, compare_queries
 from querylab.experiments.store import ExperimentStore
@@ -74,4 +75,42 @@ def test_duplicate_names_and_nonfinite_tolerance_rejected():
         CompareQueries(
             queries=[dict(name="a", sql="SELECT 1"), dict(name="b", sql="SELECT 1")],
             rules=dict(numeric_tolerance=float("nan")),
+        )
+
+
+@pytest.mark.parametrize(
+    "first,second", [("true", "1"), ("9007199254740992", "9007199254740993")]
+)
+def test_sql_comparison_preserves_types_and_integer_precision(tmp_path, first, second):
+    store = ExperimentStore(tmp_path)
+    experiment = store.create(draft())
+    report = compare_queries(
+        store, experiment.id, request(f"SELECT {first} AS v", f"SELECT {second} AS v")
+    )
+    assert not report["outputs"][1]["comparison"]["passed"]
+
+
+@pytest.mark.parametrize("during_run", [False, True])
+def test_changed_snapshot_is_rejected(tmp_path, monkeypatch, during_run):
+    store = ExperimentStore(tmp_path)
+    experiment = store.create(draft())
+
+    def change_file():
+        with duckdb.connect(str(store.snapshot_path(experiment.id))) as connection:
+            connection.execute("UPDATE items SET value = 99")
+
+    if during_run:
+        original = store.run
+
+        def run(*args):
+            result = original(*args)
+            change_file()
+            return result
+
+        monkeypatch.setattr(store, "run", run)
+    else:
+        change_file()
+    with pytest.raises(ValueError, match="snapshot no longer matches"):
+        compare_queries(
+            store, experiment.id, request("SELECT * FROM items", "SELECT * FROM items")
         )

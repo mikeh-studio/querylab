@@ -159,6 +159,53 @@ def test_exploration_save_reload_and_read_only(live_server: str) -> None:
         browser.close()
 
 
+def test_new_query_and_candidate_selection_preserve_saved_work(
+    live_server: str,
+) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        page = browser.new_page()
+        page.goto(live_server)
+        page.get_by_role("button", name="Try an offline example").click()
+        expect(page.locator("#name")).to_have_text("Orders and customers")
+        page.locator("#queryName").fill("Query 2")
+        page.locator("#sql").fill("SELECT 1 AS original")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.locator("#newQuery").click()
+        expect(page.locator("#queryName")).not_to_have_value("Query 2")
+        page.locator("#sql").fill("SELECT 2 AS second")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.locator("#savedQueries").select_option(label="Query 2")
+        expect(page.locator("#sql")).to_have_value("SELECT 1 AS original")
+        page.locator("#newQuery").click()
+        page.locator("#sql").fill("SELECT 3 AS third")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        page.get_by_role("tab", name="Compare", exact=True).click()
+        checks = page.locator("#compareCandidates input")
+        expect(checks).to_have_count(3)
+        checks.nth(0).uncheck()
+        checks.nth(2).check()
+        page.locator("#sql").fill("SELECT 33 AS third")
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        expect(checks.nth(0)).not_to_be_checked()
+        expect(checks.nth(1)).to_be_checked()
+        expect(checks.nth(2)).to_be_checked()
+        checks.nth(1).uncheck()
+        checks.nth(2).uncheck()
+        page.get_by_role("button", name="Save query", exact=True).click()
+        expect(page.locator("#status")).to_have_text("Query saved locally.")
+        expect(page.locator("#compareCandidates input:checked")).to_have_count(0)
+        page.reload()
+        page.locator("#savedQueries").select_option(label="Query 2")
+        expect(page.locator("#sql")).to_have_value("SELECT 1 AS original")
+        expect(page.locator("#savedQueries option")).to_have_count(4)
+        browser.close()
+
+
 def test_compare_saved_queries(live_server: str) -> None:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
