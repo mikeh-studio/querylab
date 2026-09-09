@@ -7,7 +7,8 @@ together. Earlier interview sessions retain their original grading interface.
 ## Shared session flow
 
 Describe an idea in the shared composer, optionally choose a company context,
-review the scope, and generate a dataset with practice questions included. Users can
+review the scope, and generate a dataset with practice questions included by default.
+Select **Generate data only** to skip questions. Users can
 add questions to existing data and move between Data, Questions, Compare, and
 Evaluate without regenerating the snapshot. Recent sessions links both saved
 experiments and earlier interviews. Generated prompts do not establish correctness;

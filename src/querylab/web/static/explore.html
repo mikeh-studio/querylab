@@ -32,7 +32,10 @@
           <button id="continue" class="button success" type="submit">Continue<img class="ui-icon" src="/assets/icons/arrow-up.svg" alt=""></button>
         </div>
       </div>
-      <p id="promptHelp" class="prompt-help">Start from an idea. Review before generating.</p>
+      <div class="generation-choice">
+        <p id="promptHelp" class="prompt-help">Practice questions are included unless you select “Generate data only”.</p>
+        <label><input id="dataOnly" type="checkbox"> Generate data only</label>
+      </div>
       <div id="generationSettings" class="generation-settings" hidden>
         <label for="provider">Generation provider</label><select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select>
       </div>

@@ -139,6 +139,9 @@
 .explore-page #continue { border-radius: 28px; gap: 10px; padding: 12px 22px; font-size: 16px; box-shadow: none; }
 #continue .ui-icon { filter: none; width: 19px; height: 19px; }
 .explore-page .prompt-help { font-size: 14px; margin: 9px 0 20px; color: #aebed0; }
+.generation-choice { display: flex; align-items: center; justify-content: space-between; gap: 8px 20px; flex-wrap: wrap; margin: 12px 0 20px; }
+.explore-page .generation-choice .prompt-help { margin: 0; }
+.explore-page .generation-choice label { margin: 0; font-size: 14px; white-space: nowrap; }
 .generation-settings { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 0; border-bottom: 1px solid var(--border); }
 .explore-page .generation-settings label { margin: 0; font-size: 14px; }
 .explore-page .generation-settings select { width: 140px; font-size: 14px; }

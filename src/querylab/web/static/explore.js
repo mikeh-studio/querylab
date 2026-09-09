@@ -118,12 +118,12 @@ $("setupForm").onsubmit = (event) => {
   if (!description || (selectedCompany === "Other" && !company)) return status("Describe your idea and complete the company context.", true);
   pendingScope = {
     description: company ? `Fictional ${company}-inspired business scenario: ${description}` : description,
-    interpret_prompt: true,
-    guided: true,
+    interpret_prompt: !$("dataOnly").checked,
+    guided: !$("dataOnly").checked,
     provider: $("provider").value
   };
   $("scopeText").textContent = pendingScope.description;
-  $("scopeMode").textContent = `Practice questions included · Native DuckDB · ${pendingScope.provider === "codex" ? "Codex" : "Claude"}`;
+  $("scopeMode").textContent = `${pendingScope.guided ? "Practice questions included" : "Data only · No practice questions"} · Native DuckDB · ${pendingScope.provider === "codex" ? "Codex" : "Claude"}`;
   $("setupForm").hidden = true; $("scopeReview").hidden = false; $("reviewTitle").focus();
 };
 $("editScope").onclick = () => { $("scopeReview").hidden = true; $("setupForm").hidden = false; $("description").focus(); };

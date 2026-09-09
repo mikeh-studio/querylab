@@ -151,7 +151,8 @@ section states: “Explore company-inspired scenarios with synthetic data genera
 by AI.” No real company records are supplied by these choices.
 
 Use **Settings** for the generation provider. Practice questions are included
-with every session generated from the home page. **Continue** opens a scope review
+by default. Select **Generate data only** beneath the composer to skip questions.
+**Continue** opens a scope review
 before generation. The provider interprets your free-form prompt; inspect generated data
 and questions before relying on them. All starts open the same native DuckDB
 workspace with **Data**, **Questions**, **Compare**, and **Evaluate** tools.

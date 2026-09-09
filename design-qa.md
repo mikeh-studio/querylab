@@ -34,6 +34,8 @@ Browser journeys exercise company presets, custom company context, clearing cont
 
 Follow-up: practice questions are now included automatically in home-page generation, and the Settings checkbox was removed as requested. The updated browser journey verifies the submitted generation payload includes questions without opening Settings. All five browser journeys and the 17 experiment tests passed after this adjustment. The default home composition is unchanged.
 
+Latest adjustment: added an unchecked “Generate data only” checkbox directly beneath the composer, beside a sentence explaining the default. The review step reflects either choice. All five browser journeys passed again, checking that data-only requests disable both guided questions and prompt-based question inference. The mobile capture at `/tmp/querylab-unified-mobile.png` shows the explanatory copy wrapping above the checkbox without horizontal overflow. Its error toast is an intentionally intercepted provider response used by the test.
+
 ## Completed checks
 
 - [x] Compare selected target with rendered desktop.

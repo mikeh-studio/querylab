@@ -244,6 +244,9 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
             page.get_by_role("heading", name="What do you want to find out?")
         ).to_be_visible()
         page.screenshot(path="/tmp/querylab-unified-home.png", full_page=True)
+        expect(
+            page.get_by_role("checkbox", name="Generate data only")
+        ).not_to_be_checked()
         page.get_by_role("button", name="Settings", exact=True).click()
         expect(page.locator("#guided")).to_have_count(0)
         expect(page.locator("#generationSettings")).to_be_visible()
@@ -285,6 +288,17 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
             "Generation intercepted for test"
         )
         assert sent[0]["guided"] is True
+        assert sent[0]["interpret_prompt"] is True
+        page.get_by_role("button", name="Edit scope", exact=True).click()
+        page.get_by_role("checkbox", name="Generate data only").check()
+        page.get_by_role("button", name="Continue", exact=True).click()
+        expect(page.locator("#scopeMode")).to_contain_text(
+            "Data only · No practice questions"
+        )
+        with page.expect_response("**/api/experiments/generate"):
+            page.get_by_role("button", name="Generate session", exact=True).click()
+        assert sent[1]["guided"] is False
+        assert sent[1]["interpret_prompt"] is False
         page.unroute("**/api/experiments/generate", capture_generation)
         page.get_by_role("button", name="Edit scope", exact=True).click()
         page.screenshot(path="/tmp/querylab-unified-setup.png", full_page=True)
