@@ -31,6 +31,16 @@
         <div class="toolbar"><button id="run">Run query</button><button id="save" class="secondary">Save query</button></div>
         <p class="muted">Native DuckDB · Read-only · Up to 500 result rows. SQL edits are saved only when you choose Save query.</p>
       </section>
+      <section aria-label="Compare queries">
+        <h2>Compare saved queries</h2>
+        <p>Select two to six queries. The first selected query is the comparison baseline; agreement does not establish correctness.</p>
+        <div id="compareCandidates"></div>
+        <label><input id="orderMatters" type="checkbox"> Row order matters</label>
+        <label for="tolerance">Absolute numeric tolerance (0–1)</label>
+        <input id="tolerance" type="number" min="0" max="1" step="0.000001" value="0.000001">
+        <button id="compare">Compare queries</button>
+        <div id="comparisonResults"></div>
+      </section>
       <section aria-label="Query results"><h2>Results</h2><div id="results" class="output"></div></section>
     </div>
   </section>
