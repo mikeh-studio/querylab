@@ -195,7 +195,8 @@
 .company-options .tile-logo img { width: 36px; height: 36px; filter: brightness(0) invert(1); }
 .company-options [data-company="Airbnb"] .tile-logo { background: #ff5a5f; }
 .company-options [data-company="Meta"] .tile-logo { background: #1877f2; }
-.company-options [data-company="DoorDash"] .tile-logo { background: #ff3008; }
+.company-options [data-company="Amazon"] .tile-logo { background: #ff9900; }
+.company-options [data-company="Amazon"] .tile-logo img { filter: brightness(0); }
 .company-options [data-company="Netflix"] .tile-logo { background: #e50914; }
 .explore-page .prompt-composer #description { resize: none; }
 @media(max-width: 760px) { .company-options .tile-logo { width: 42px; height: 42px; border-radius: 10px; } .company-options .tile-logo img { width: 28px; height: 28px; } }

@@ -72,7 +72,7 @@ const companyScenarios = {
   Airbnb: "Bookings, cancellations, and repeat guests across cities.",
   Meta: "Hardware sales, returns, and customer engagement.",
   Uber: "Trips, riders, drivers, and demand across cities.",
-  DoorDash: "Orders, delivery times, and repeat customers.",
+  Amazon: "Marketplace orders, products, sellers, and fulfillment times.",
   Netflix: "Viewing activity, subscriptions, and retention."
 };
 const examples = {
