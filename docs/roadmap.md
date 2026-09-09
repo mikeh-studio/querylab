@@ -1,30 +1,38 @@
 # QueryLab development roadmap
 
-QueryLab brings generated and real data into a SQL exploration and evaluation workspace.
-Saved datasets and free exploration are implemented alongside interview practice.
-Query comparison and evaluation are the next two slices; uploads and connections follow.
+QueryLab now supports three connected workflows alongside interview practice.
 
-## Slice 1: saved datasets and free exploration (implemented)
+## Slice 1: saved datasets and free exploration
 
-Reuse the existing schema/data models and DuckDB execution boundary. Add a dataset-only
-workflow that does not require questions, reference SQL, or a grading submission.
-Persist a versioned dataset snapshot and saved queries so reopening an experiment uses
-the same data. Keep existing exercise generation and grading available.
+Generate a dataset without questions or reference answers, or load the offline
+sample. Inspect tables, run read-only SQL, and explicitly save named queries.
+Materialized DuckDB snapshots preserve the data across application restarts;
+revision checks protect saved SQL from stale browser tabs.
 
-Acceptance: generate or load an offline dataset, inspect tables, execute arbitrary
-supported read queries, save, restart, and reopen with identical data and SQL.
-Query execution must retain the current restrictions and resource limits.
+## Slice 2: query comparison
 
-## Following slices
+Compare two to six saved queries on one fixed snapshot. Inspect full bounded outputs,
+column differences, row differences and errors with configurable ordering and numeric
+tolerance. The first selected query is a comparison baseline, not an oracle.
 
-- CSV/Parquet upload: local ingestion, explicit table names and inferred types,
-  preview before import, bounded file size, and actionable parse errors.
-- Evaluation: versioned cases, multiple candidate queries, reviewed reference results
-  or assertions, per-dataset differences, batch execution, and comparable run reports.
-- Connections: read-only credentials, bounded queries, and explicit snapshots for
-  reproducible evaluation. Do not persist secrets in experiment exports or history.
+## Slice 3: reviewed query evaluation
 
-Agreement between queries is not proof of correctness. An evaluation requires a
-stated expectation; free exploration does not. Native execution and dialect emulation
-must remain clearly distinguished. AI query generation can later supply candidates
-without changing the evaluator's source of truth.
+Save an immutable case with an explicit expected behavior, a reviewed reference query,
+one to four dataset snapshots and comparison rules. Run one to six candidates and
+retain per-dataset results, candidate SQL, reference SQL, fingerprints and engine
+version. Reopen past reports or compare runs for regressions and improvements.
+
+This first evaluation slice uses reviewed reference SQL. Assertion-only cases and
+AI-generated query candidates can be added later without changing the execution core.
+Matching a reference on finite datasets is evidence, not proof of general correctness.
+Missing or modified snapshots and reference failures invalidate that scenario; they
+never count as a candidate pass.
+
+## Later: additional data sources
+
+- CSV/Parquet uploads with previews, explicit table names, type handling and size limits.
+- Read-only external connections with explicit local snapshots for repeatable evaluation.
+- Dataset controls for row counts, NULL frequency, duplicates and other edge cases.
+
+Keep credentials out of saved experiments and exports. Native execution and dialect
+emulation must remain clearly distinguished; exploration currently uses native DuckDB.

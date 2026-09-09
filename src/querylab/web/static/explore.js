@@ -29,6 +29,7 @@ function renderResult(result, target = $("results")) {
 }
 async function refreshDatasets() {
   const datasets = await api("/api/experiments"); $("datasets").replaceChildren();
+  renderCaseDatasets(datasets);
   datasets.forEach((dataset) => { const button = document.createElement("button"); button.className = "secondary dataset"; button.textContent = dataset.name; button.setAttribute("aria-current", String(current?.id === dataset.id)); button.onclick = () => { if (canLeave()) action(() => openDataset(dataset.id)); }; $("datasets").append(button); });
 }
 function renderQueries() {
@@ -52,7 +53,7 @@ async function openDataset(id) {
   });
   renderQueries(); setEditor(current.queries[0] || {name: "Query 1", sql: `SELECT * FROM "${current.tables[0].name}" LIMIT 100;`});
   $("comparisonResults").replaceChildren();
-  $("results").replaceChildren(); history.replaceState(null, "", `/explore?id=${id}`); await refreshDatasets(); status("Dataset opened. SQL runs against this fixed snapshot.");
+  $("results").replaceChildren(); history.replaceState(null, "", `/explore?id=${id}`); await refreshDatasets(); await refreshCases(); status("Dataset opened. SQL runs against this fixed snapshot.");
 }
 $("demo").onclick = () => { if (canLeave()) action(async () => { status("Creating offline dataset…"); const dataset = await api("/api/experiments/demo", "POST"); await openDataset(dataset.id); }); };
 $("generate").onclick = () => {
@@ -99,4 +100,73 @@ $("compare").onclick = () => action(async () => {
     $("comparisonResults").append(section);
   });
   status("Comparison complete. Results reflect the saved SQL shown in the report.");
+});
+
+let evaluationCases = [];
+let evaluationRuns = [];
+function renderCaseDatasets(datasets) {
+  $("caseDatasets").replaceChildren();
+  datasets.forEach((dataset) => {
+    const label = document.createElement("label"); const check = document.createElement("input");
+    check.type = "checkbox"; check.value = dataset.id; check.checked = dataset.id === current?.id;
+    label.append(check, document.createTextNode(` ${dataset.name} (${dataset.snapshot_sha256.slice(0, 8)})`)); $("caseDatasets").append(label);
+  });
+}
+async function refreshCases(selectedId = $("evaluationCase").value) {
+  evaluationCases = await api("/api/evaluation-cases");
+  $("evaluationCase").replaceChildren(new Option("Choose an evaluation case", ""));
+  evaluationCases.forEach((item) => $("evaluationCase").append(new Option(`${item.name} (${item.id.slice(0, 8)})`, item.id)));
+  $("evaluationCase").value = selectedId;
+  await refreshRuns();
+}
+async function refreshRuns() {
+  const selected = evaluationCases.find((item) => item.id === $("evaluationCase").value);
+  $("caseDetails").textContent = selected ? `${selected.expectation}\nReference: ${selected.reference_sql}\nDatasets: ${selected.datasets.map((item) => item.name + " " + item.sha256.slice(0, 8)).join(", ")}\nOrder matters: ${selected.rules.order_matters}; tolerance: ${selected.rules.numeric_tolerance}` : "";
+  evaluationRuns = selected ? await api(`/api/evaluation-cases/${selected.id}/runs`) : [];
+  [$("earlierRun"), $("laterRun")].forEach((select) => {
+    select.replaceChildren(); evaluationRuns.forEach((run) => select.append(new Option(`${new Date(run.created_at).toLocaleString()} (${run.id.slice(0, 8)})`, run.id)));
+  });
+  if (evaluationRuns.length > 1) $("earlierRun").selectedIndex = 1;
+  $("evaluationResults").replaceChildren();
+}
+$("evaluationCase").onchange = () => action(refreshRuns);
+$("referenceSql").addEventListener("input", () => { $("referenceReviewed").checked = false; });
+$("createCase").onclick = () => action(async () => {
+  if (!$("referenceReviewed").checked) throw new Error("Review the reference SQL and confirm before saving.");
+  const dataset_ids = [...$("caseDatasets").querySelectorAll("input:checked")].map((el) => el.value);
+  if (dataset_ids.length < 1 || dataset_ids.length > 4) throw new Error("Choose one to four datasets.");
+  status("Validating the reference on every selected dataset…");
+  const item = await api("/api/evaluation-cases", "POST", {name: $("caseName").value, expectation: $("expectation").value, dataset_ids,
+    reference_sql: $("referenceSql").value, reference_reviewed: true, rules: {order_matters: $("orderMatters").checked, numeric_tolerance: Number($("tolerance").value)}});
+  await refreshCases(item.id); status("Evaluation case saved. Its data, reference and rules are fixed.");
+});
+function showEvaluation(report) {
+  const target = $("evaluationResults"); target.replaceChildren();
+  const summary = document.createElement("p"); summary.textContent = `${report.summary.passed} passed · ${report.summary.failed} failed · ${report.summary.error} execution errors · ${report.summary.invalid_case} invalid cases. DuckDB ${report.engine_version}.`;
+  target.append(summary);
+  const sql = document.createElement("details"); const label = document.createElement("summary"); label.textContent = "SQL and frozen case used in this run";
+  const content = document.createElement("pre"); content.textContent = JSON.stringify({case: report.case, queries: report.queries, created_at: report.created_at}, null, 2); sql.append(label, content); target.append(sql);
+  report.outcomes.forEach((outcome) => {
+    const details = document.createElement("details"); const heading = document.createElement("summary"); heading.textContent = `${outcome.candidate} · ${outcome.dataset_name} · ${outcome.status}`;
+    const body = document.createElement("pre"); body.textContent = outcome.error || JSON.stringify(outcome.comparison, null, 2); details.append(heading, body); target.append(details);
+  });
+}
+$("evaluate").onclick = () => action(async () => {
+  const caseId = $("evaluationCase").value; if (!caseId) throw new Error("Choose a saved evaluation case.");
+  const queries = [...$("compareCandidates").querySelectorAll("input:checked")].map((el) => current.queries[Number(el.value)]);
+  if (queries.length < 1 || queries.length > 6) throw new Error("Select one to six saved queries above.");
+  $("evaluationResults").replaceChildren(); status("Evaluating selected queries across the case datasets…");
+  const report = await api(`/api/evaluation-cases/${caseId}/runs`, "POST", {queries});
+  await refreshRuns(); showEvaluation(report); status("Evaluation saved. Expand an outcome to inspect its differences.");
+});
+$("showRun").onclick = () => action(async () => { const report = evaluationRuns.find((run) => run.id === $("laterRun").value); if (!report) throw new Error("Choose a saved run."); showEvaluation(report); status("Showing the original saved run."); });
+$("compareRuns").onclick = () => action(async () => {
+  const earlier = $("earlierRun").value, later = $("laterRun").value;
+  if (!earlier || !later || earlier === later) throw new Error("Choose two different runs of this case.");
+  const comparison = await api(`/api/evaluation-runs/compare?earlier=${encodeURIComponent(earlier)}&later=${encodeURIComponent(later)}`);
+  $("evaluationResults").replaceChildren();
+  const note = document.createElement("p"); note.textContent = `Compared by candidate name and dataset. ${comparison.same_engine_version ? "Same DuckDB version." : "DuckDB versions differ; interpret changes carefully."}`; $("evaluationResults").append(note);
+  comparison.changes.forEach((change) => { const row = document.createElement("p"); row.textContent = `${change.candidate} · ${change.dataset_id.slice(0, 8)}: ${change.before} → ${change.after}${change.regression ? " — regression" : change.improvement ? " — improvement" : ""}`; $("evaluationResults").append(row); });
+  const details = document.createElement("details"); const summary = document.createElement("summary"); summary.textContent = "Inspect both original runs and SQL"; const body = document.createElement("pre"); body.textContent = JSON.stringify(comparison, null, 2); details.append(summary, body); $("evaluationResults").append(details);
+  status("Run comparison complete. Added or removed candidates are marked absent.");
 });

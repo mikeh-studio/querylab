@@ -23,7 +23,7 @@
     <p id="status" role="status" aria-live="polite">Choose a saved dataset or create one to begin.</p>
     <div id="experiment" hidden>
       <h1 id="name"></h1><p id="context"></p><p id="snapshot" class="muted"></p>
-      <details open><summary>Tables and schema</summary><div id="tables"></div></details>
+      <details><summary>Tables and schema</summary><div id="tables"></div></details>
       <section aria-label="Query editor">
         <div class="toolbar"><label for="savedQueries">Saved query</label><select id="savedQueries"></select><button id="newQuery" class="secondary">New query</button></div>
         <label for="queryName">Query name</label><input id="queryName" maxlength="120" value="Query 1">
@@ -31,6 +31,7 @@
         <div class="toolbar"><button id="run">Run query</button><button id="save" class="secondary">Save query</button></div>
         <p class="muted">Native DuckDB · Read-only · Up to 500 result rows. SQL edits are saved only when you choose Save query.</p>
       </section>
+      <section aria-label="Query results"><h2>Results</h2><div id="results" class="output"></div></section>
       <section aria-label="Compare queries">
         <h2>Compare saved queries</h2>
         <p>Select two to six queries. The first selected query is the comparison baseline; agreement does not establish correctness.</p>
@@ -41,7 +42,26 @@
         <button id="compare">Compare queries</button>
         <div id="comparisonResults"></div>
       </section>
-      <section aria-label="Query results"><h2>Results</h2><div id="results" class="output"></div></section>
+      <section aria-label="Query evaluation">
+        <h2>Evaluate against a reviewed reference</h2>
+        <p>Create a fixed case, then run selected saved queries against it. Passing means matching the reviewed reference on these datasets, not proof for all possible data.</p>
+        <details><summary>Create evaluation case</summary>
+          <label for="caseName">Case name</label><input id="caseName" maxlength="120">
+          <label for="expectation">What should the query calculate?</label><textarea id="expectation" maxlength="2000" rows="3"></textarea>
+          <p>Choose up to four saved datasets with the tables needed by your reference query.</p><div id="caseDatasets"></div>
+          <label for="referenceSql">Reference SQL</label><textarea id="referenceSql" class="sql" rows="5" maxlength="20000"></textarea>
+          <label><input id="referenceReviewed" type="checkbox"> I reviewed this SQL and trust it as the expected behavior.</label>
+          <p class="muted">The case freezes these datasets, reference SQL, and the ordering/tolerance rules selected above. To change a case, save a new one.</p>
+          <button id="createCase">Save evaluation case</button>
+        </details>
+        <label for="evaluationCase">Saved evaluation case</label><select id="evaluationCase"></select>
+        <pre id="caseDetails"></pre>
+        <button id="evaluate">Evaluate selected queries</button>
+        <p class="muted">Uses the saved queries selected in Compare saved queries above. Execution errors and invalid references are recorded separately.</p>
+        <div class="toolbar"><label for="earlierRun">Earlier run</label><select id="earlierRun"></select><label for="laterRun">Later run</label><select id="laterRun"></select></div>
+        <button id="showRun" class="secondary">Show selected run</button><button id="compareRuns" class="secondary">Compare runs</button>
+        <div id="evaluationResults"></div>
+      </section>
     </div>
   </section>
 </main>

@@ -332,13 +332,13 @@ structured generation, progressive loading, local history/cache behavior, and br
 
 ## Roadmap
 
-Saved datasets and free SQL exploration are now available. Next:
+Saved datasets, free SQL exploration, query comparison and reviewed-reference
+evaluation are available. Next:
 
 1. Extend dataset generation controls.
 2. Upload CSV/Parquet files and explore them in the same local workspace.
-3. Save evaluation cases and compare multiple SQL queries across fixed datasets.
-4. Add reviewed expectations, assertions, batch reports, and run comparisons.
-5. Connect external data sources with read-only access and reproducible snapshots.
+3. Add assertion-only evaluation cases.
+4. Connect external data sources with read-only access and reproducible snapshots.
 
 See [the development roadmap](docs/roadmap.md) for the proposed first slice.
 
@@ -369,3 +369,23 @@ selected query is the baseline. Each query runs against the same fixed snapshot;
 outputs, column/row differences and execution errors are shown separately.
 Agreement is not a correctness judgment. Comparison uses full results under the
 500-row limit, preserving duplicate and NULL semantics; it never compares SQL text.
+
+### Evaluate queries and compare runs
+
+Under **Evaluate against a reviewed reference**, describe the expected behavior,
+select one to four saved datasets, enter reference SQL, and confirm that you have
+reviewed it. Saving validates the reference on every dataset and freezes the case's
+SQL, snapshot fingerprints, ordering and tolerance rules. Change an expectation by
+creating a new case; existing reports keep their original meaning.
+
+Select one to six saved queries and evaluate them against the case. Reports separate
+matches, result mismatches, execution errors and invalid-case errors. Saved runs
+include the exact candidate SQL, frozen case, dataset identities and DuckDB version.
+Use the run selectors to inspect old reports or compare outcomes by candidate name
+and dataset. Added/removed candidates are marked absent, not regressions.
+
+This release uses reviewed reference queries; assertion-only cases are deferred.
+Passing on finite test data does not prove general SQL correctness. Reference SQL is
+executed for each run, so choose deterministic reference queries for repeatable
+expectations. Generated SQL is never automatically promoted to a trusted reference.
+Evaluation and exploration reports remain local, alongside experiment metadata.

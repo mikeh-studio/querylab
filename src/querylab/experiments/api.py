@@ -18,6 +18,7 @@ from querylab.experiments.models import (
 from querylab.experiments.store import ExperimentStore
 from querylab.experiments.serialization import display_json
 from querylab.experiments.comparison import CompareQueries, compare_queries
+from querylab.experiments.evaluation import CreateCase, EvaluateQueries, EvaluationStore
 from querylab.exercises import get_static_exercise
 from querylab.generation.schema import make_strict_output_schema
 from querylab.llm import create_provider, LLMProviderError
@@ -25,12 +26,13 @@ from querylab.llm import create_provider, LLMProviderError
 
 def experiment_router(store: ExperimentStore, settings: Settings) -> APIRouter:
     router = APIRouter()
+    evaluations = EvaluationStore(store)
 
     def call(action):
         try:
             return action()
         except KeyError as exc:
-            raise HTTPException(404, "Experiment not found") from exc
+            raise HTTPException(404, str(exc).strip("'")) from exc
         except (ValueError, duckdb.Error, LLMProviderError) as exc:
             raise HTTPException(400, str(exc)) from exc
 
@@ -97,5 +99,25 @@ def experiment_router(store: ExperimentStore, settings: Settings) -> APIRouter:
         return call(
             lambda: display_json(compare_queries(store, experiment_id, payload))
         )
+
+    @router.get("/api/evaluation-cases")
+    def cases():
+        return evaluations.cases()
+
+    @router.post("/api/evaluation-cases")
+    def create_case(payload: CreateCase):
+        return call(lambda: evaluations.create_case(payload))
+
+    @router.get("/api/evaluation-cases/{case_id}/runs")
+    def runs(case_id: str):
+        return call(lambda: evaluations.runs(case_id))
+
+    @router.post("/api/evaluation-cases/{case_id}/runs")
+    def evaluate(case_id: str, payload: EvaluateQueries):
+        return call(lambda: evaluations.evaluate(case_id, payload))
+
+    @router.get("/api/evaluation-runs/compare")
+    def compare_runs(earlier: str, later: str):
+        return call(lambda: evaluations.compare_runs(earlier, later))
 
     return router
