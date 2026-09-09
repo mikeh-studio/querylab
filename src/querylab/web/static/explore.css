@@ -98,3 +98,27 @@
   .explore-page .query-actions .shortcut-help { display: none; }
   .explore-status { height: auto !important; min-height: 36px; }
 }
+
+/* One entry, adaptive setup, one persistent SQL workspace. */
+.explore-page:not(.is-open) .explore-layout { display: none; }
+.is-open #sessionStart { display: none; }
+.session-start { width: min(1080px, calc(100% - 48px)); margin: 0 auto 40px; }
+.start-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.start-card { text-align: left; padding: 26px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
+.start-card:hover, .start-card[aria-pressed="true"] { border-color: var(--green); background: var(--green-soft); }
+.start-card h2 { margin: 26px 0 12px; font-size: 20px; }
+.start-card p { font-size: 13px; min-height: 64px; }
+.start-example { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border); padding-top: 18px; color: #bdc9d8; font-size: 11px; line-height: 1.6; }
+.session-setup { max-width: 740px; margin: 28px auto; border: 1px solid var(--border); border-radius: 14px; padding: 28px; background: var(--surface); }
+.setup-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.setup-heading h2 { margin: 10px 0; }
+.setup-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.recent-sessions { margin-top: 42px; border-top: 1px solid var(--border); padding-top: 24px; }
+.recent-sessions .dataset { padding: 16px; }
+#scopeText { white-space: pre-wrap; overflow-wrap: anywhere; }
+#sessionQuestions article { border-bottom: 1px solid var(--border); padding: 12px 0 20px; }
+#sessionQuestions p { white-space: pre-wrap; overflow-wrap: anywhere; }
+#addQuestion { margin-top: 14px; }
+#legacySessions a { display: block; color: var(--muted); padding: 12px 0; font-size: 12px; }
+.explore-page :focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }
+@media(max-width: 760px) { .start-options { grid-template-columns: 1fr; } .start-card p { min-height: 0; } .start-card { padding: 22px; } .session-setup { padding: 22px; } .setup-heading { flex-wrap: wrap; } .explore-page .pane-tab { padding-inline: 14px; } }

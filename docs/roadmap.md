@@ -1,6 +1,17 @@
 # QueryLab development roadmap
 
-QueryLab now supports three connected workflows alongside interview practice.
+QueryLab uses one shared entry and SQL workspace for dataset-, company-, and
+question-based starts. Sessions keep their data snapshot, questions, and saved SQL
+together. Earlier interview sessions retain their original grading interface.
+
+## Shared session flow
+
+Choose a starting point, refine the scope, review it, and generate a dataset with
+optional questions. Company context does not require interview practice. Users can
+add questions to existing data and move between Data, Questions, Compare, and
+Evaluate without regenerating the snapshot. Recent sessions links both saved
+experiments and earlier interviews. Generated prompts do not establish correctness;
+reviewed-reference evaluation remains a separate, explicit step.
 
 ## Slice 1: saved datasets and free exploration
 

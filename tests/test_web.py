@@ -147,7 +147,7 @@ def create_session(client: TestClient, **overrides):
 def test_browser_shell_and_company_options_are_served(web_client) -> None:
     client, _ = web_client
 
-    page = client.get("/")
+    page = client.get("/practice")
     options = client.get("/api/options")
     app_script = client.get("/assets/app.js")
 

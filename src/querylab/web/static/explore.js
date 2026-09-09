@@ -32,14 +32,14 @@ async function refreshDatasets() {
   const datasets = await api("/api/experiments"); $("datasets").replaceChildren();
   renderCaseDatasets(datasets);
   if (!datasets.length) { const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = "Your saved datasets will appear here."; $("datasets").append(empty); }
-  datasets.forEach((dataset) => { const button = document.createElement("button"); button.className = "button secondary dataset"; button.textContent = dataset.name; button.setAttribute("aria-current", String(current?.id === dataset.id)); button.onclick = () => { if (canLeave()) action(() => openDataset(dataset.id)); }; $("datasets").append(button); });
+  datasets.forEach((dataset) => { const button = document.createElement("button"); button.className = "button secondary dataset"; button.textContent = `${dataset.name} · ${dataset.tables.length} tables · ${(dataset.questions || []).length} questions · ${new Date(dataset.created_at).toLocaleDateString()}`; button.setAttribute("aria-current", String(current?.id === dataset.id)); button.onclick = () => { if (canLeave()) action(() => openDataset(dataset.id)); }; $("datasets").append(button); });
 }
 function renderQueries() {
   renderCandidates();
   $("savedQueries").replaceChildren(new Option("Choose a saved query", ""));
   current.queries.forEach((query, index) => $("savedQueries").append(new Option(query.name, index)));
 }
-function setEditor(query) { $("queryName").value = query.name; $("sql").value = query.sql; updateEditorLines(); dirty = false; }
+function setEditor(query) { const index = current.queries.findIndex((item) => item.name === query.name); $("savedQueries").value = index < 0 ? "" : String(index); $("queryName").value = query.name; $("sql").value = query.sql; updateEditorLines(); dirty = false; }
 async function openDataset(id) {
   current = await api(`/api/experiments/${id}`); dirty = false;
   document.body.classList.add("is-open");
@@ -57,17 +57,70 @@ async function openDataset(id) {
     preview.onclick = () => action(async () => { renderResult(await api(`/api/experiments/${current.id}/run`, "POST", {sql: `SELECT * FROM "${table.name}" LIMIT 50`})); status(`Preview of ${table.name}.`); });
     $("tables").append(heading, description, ddl, preview);
   });
+  renderQuestions();
   renderQueries(); setEditor(current.queries[0] || {name: "Query 1", sql: `SELECT * FROM "${current.tables[0].name}" LIMIT 100;`});
   $("comparisonResults").replaceChildren();
   $("results").replaceChildren();
   const empty = document.createElement("div"); empty.className = "result-placeholder"; empty.textContent = "Run your query to see results."; $("results").append(empty);
-  history.replaceState(null, "", `/explore?id=${id}`); await refreshDatasets(); await refreshCases(); status("Dataset opened. SQL runs against this fixed snapshot.");
+  history.replaceState(null, "", `/?id=${encodeURIComponent(id)}`); await refreshDatasets(); await refreshCases(); status("Dataset opened. SQL runs against this fixed snapshot.");
 }
 $("demo").onclick = () => { if (canLeave()) action(async () => { status("Creating offline dataset…"); const dataset = await api("/api/experiments/demo", "POST"); await openDataset(dataset.id); }); };
-$("generate").onclick = () => {
-  if (!$("description").value.trim()) return status("Describe the dataset to generate.", true);
-  if (canLeave()) action(async () => { status("Generating and validating a dataset. This may take several minutes…"); const dataset = await api("/api/experiments/generate", "POST", {description: $("description").value, provider: $("provider").value}); await openDataset(dataset.id); });
+let startMode = null;
+let pendingScope = null;
+const setupCopy = {
+  dataset: ["Build a dataset", "Describe your dataset", "Orders, customers, and refunds. Include repeat buyers and partial refunds.", "Describe useful tables, relationships, and edge cases. You can add questions later."],
+  company: ["Explore a company context", "Business scenario", "Bookings and cancellations across cities, including repeat guests.", "Company context shapes fictional data. Choose free exploration or add guided questions."],
+  questions: ["Start with questions", "Your question or practice topic", "Which customers returned within 30 days? Or: practice joins and window functions.", "For a specific business question, describe the metric and time window. For practice, describe the SQL skills you want to build."]
 };
+document.querySelectorAll("[data-start]").forEach((button) => {
+  button.onclick = () => {
+    startMode = button.dataset.start; pendingScope = null;
+    document.querySelectorAll("[data-start]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+    const copy = setupCopy[startMode];
+    $("setupTitle").textContent = copy[0]; $("descriptionLabel").textContent = copy[1];
+    $("description").placeholder = copy[2]; $("setupHelp").textContent = copy[3];
+    $("companyFields").hidden = startMode !== "company"; $("company").required = startMode === "company";
+    $("questionFields").hidden = startMode !== "questions";
+    $("guidedChoice").hidden = startMode === "questions";
+    $("scopeReview").hidden = true; $("setupForm").hidden = false;
+    $("setupTitle").focus();
+  };
+});
+$("setupForm").onsubmit = (event) => {
+  event.preventDefault();
+  const description = $("description").value.trim(), company = $("company").value.trim();
+  if (!description || (startMode === "company" && !company)) return status("Complete the session scope first.", true);
+  const topic = startMode === "questions" && $("questionKind").value === "topic";
+  pendingScope = {
+    description: startMode === "company" ? `Fictional ${company}-style business scenario: ${description}` : topic ? `Generate a dataset and guided SQL practice questions for this topic: ${description}` : description,
+    guided: startMode === "questions" ? topic : $("guided").checked,
+    question: startMode === "questions" && !topic ? description : "",
+    provider: $("provider").value
+  };
+  $("scopeText").textContent = pendingScope.description;
+  $("scopeMode").textContent = `${pendingScope.guided ? "Include guided questions" : pendingScope.question ? "Include your question" : "Free exploration; add questions whenever you like"} · Native DuckDB · ${pendingScope.provider === "codex" ? "Codex" : "Claude"}`;
+  $("setupForm").hidden = true; $("scopeReview").hidden = false; $("reviewTitle").focus();
+};
+$("editScope").onclick = () => { $("scopeReview").hidden = true; $("setupForm").hidden = false; $("setupTitle").focus(); };
+$("generate").onclick = () => {
+  if (!pendingScope) return;
+  action(async () => { status("Generating and validating your session. This may take several minutes…"); const dataset = await api("/api/experiments/generate", "POST", pendingScope); await openDataset(dataset.id); if (current.questions.length) selectPanel("data-tool", "questionsTools"); });
+};
+function renderQuestions() {
+  $("sessionQuestions").replaceChildren();
+  if (!current.questions.length) { const note = document.createElement("p"); note.textContent = "No questions yet. Add one below, or explore the tables freely."; $("sessionQuestions").append(note); }
+  current.questions.forEach((question, index) => {
+    const card = document.createElement("article"), heading = document.createElement("h3"), text = document.createElement("p"), button = document.createElement("button");
+    heading.textContent = `Question ${index + 1}`; text.textContent = question; button.textContent = "Work on this question"; button.className = "button ghost small";
+    button.onclick = () => { if (canLeave()) { const name = `Question ${index + 1}`; setEditor(current.queries.find((query) => query.name === name) || {name, sql: ""}); $("sql").focus(); status(`Working on question ${index + 1}. Save your SQL to return to it later.`); } };
+    card.append(heading, text, button); $("sessionQuestions").append(card);
+  });
+}
+$("addQuestion").onclick = () => action(async () => {
+  const question = $("newQuestion").value.trim(); if (!question) throw new Error("Enter a question to save.");
+  current = await api(`/api/experiments/${current.id}/questions`, "PUT", {revision: current.revision, questions: [...current.questions, question]});
+  $("newQuestion").value = ""; renderQuestions(); status("Question saved with this dataset. Your SQL edits are unchanged.");
+});
 $("run").onclick = () => action(async () => { $("results").replaceChildren(); status("Running SQL…"); renderResult(await api(`/api/experiments/${current.id}/run`, "POST", {sql: $("sql").value})); status("Query completed. No correctness expectation was applied."); });
 $("save").onclick = () => action(async () => {
   const query = {name: $("queryName").value.trim(), sql: $("sql").value.trim()};
@@ -79,7 +132,7 @@ $("newQuery").onclick = () => { if (canLeave()) setEditor({name: `Query ${curren
 $("savedQueries").onchange = () => { const query = current.queries[Number($("savedQueries").value)]; if (query && canLeave()) setEditor(query); };
 [$("sql"), $("queryName")].forEach((el) => el.addEventListener("input", () => { dirty = true; }));
 window.addEventListener("beforeunload", (event) => { if (dirty || busy) { event.preventDefault(); event.returnValue = ""; } });
-action(async () => { const id = new URLSearchParams(location.search).get("id"); if (id) await openDataset(id); else await refreshDatasets(); });
+action(async () => { const id = new URLSearchParams(location.search).get("id"); if (id) await openDataset(id); else { await refreshDatasets(); await refreshLegacySessions(); } });
 
 function renderCandidates() {
   $("compareCandidates").replaceChildren();
@@ -192,8 +245,8 @@ function selectPanel(attribute, id) {
     $(button.getAttribute(attribute)).hidden = !selected;
   });
   if (attribute === "data-tool") {
-    $("querySelection").hidden = id === "datasetTools";
-    if (id !== "datasetTools") $(id).insertBefore($("querySelection"), $(id === "compareTools" ? "compare" : "evaluate"));
+    $("querySelection").hidden = !["compareTools", "evaluateTools"].includes(id);
+    if (["compareTools", "evaluateTools"].includes(id)) $(id).insertBefore($("querySelection"), $(id === "compareTools" ? "compare" : "evaluate"));
   }
 }
 function showOutput(id) { selectPanel("data-result", id); }
@@ -216,3 +269,10 @@ function updateEditorLines() { $("exploreLines").textContent = Array.from({lengt
 $("sql").addEventListener("input", updateEditorLines);
 $("sql").addEventListener("scroll", () => { $("exploreLines").scrollTop = $("sql").scrollTop; });
 $("sql").addEventListener("keydown", (event) => { if ((event.metaKey || event.ctrlKey) && event.key === "Enter") { event.preventDefault(); $("run").click(); } });
+
+async function refreshLegacySessions() {
+  try {
+    const data = await api("/api/history");
+    data.sessions.forEach((session) => { const link = document.createElement("a"); link.href = `/practice?resume=${encodeURIComponent(session.id)}`; link.textContent = `${session.company} · ${session.question_count} questions · Earlier interview session`; $("legacySessions").append(link); });
+  } catch { const note = document.createElement("p"); note.textContent = "Earlier interview sessions could not be loaded. Refresh to try again."; $("legacySessions").append(note); }
+}
