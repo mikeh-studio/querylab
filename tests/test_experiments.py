@@ -184,7 +184,7 @@ def test_question_first_generation_and_question_api(store, monkeypatch):
     class Provider:
         def generate(self, prompt, *, output_schema):
             assert question in prompt
-            assert "Include three clear business questions" in prompt
+            assert "Include three clear practice questions" in prompt
             generated = draft()
             generated.questions = ["How many rows are there?"]
             return generated.model_dump_json()

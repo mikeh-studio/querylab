@@ -119,11 +119,11 @@ $("setupForm").onsubmit = (event) => {
   pendingScope = {
     description: company ? `Fictional ${company}-inspired business scenario: ${description}` : description,
     interpret_prompt: true,
-    guided: $("guided").checked,
+    guided: true,
     provider: $("provider").value
   };
   $("scopeText").textContent = pendingScope.description;
-  $("scopeMode").textContent = `${pendingScope.guided ? "Include practice questions" : "Questions included when requested in your prompt"} · Native DuckDB · ${pendingScope.provider === "codex" ? "Codex" : "Claude"}`;
+  $("scopeMode").textContent = `Practice questions included · Native DuckDB · ${pendingScope.provider === "codex" ? "Codex" : "Claude"}`;
   $("setupForm").hidden = true; $("scopeReview").hidden = false; $("reviewTitle").focus();
 };
 $("editScope").onclick = () => { $("scopeReview").hidden = true; $("setupForm").hidden = false; $("description").focus(); };

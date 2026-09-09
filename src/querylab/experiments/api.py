@@ -69,7 +69,8 @@ def experiment_router(store: ExperimentStore, settings: Settings) -> APIRouter:
                 "Use CREATE TABLE DDL and INSERT statements. Materialize at most 1000 rows; include useful relationships, NULLs and duplicates where appropriate. "
                 "Do not create reference SQL, external files, connections, views or extensions. "
                 + (
-                    "Include three clear business questions answerable using these exact tables. "
+                    "Include three clear practice questions answerable using these exact tables. "
+                    "If the description asks a specific business question, preserve it as one of the questions and create data that can answer it. "
                     if payload.guided
                     else (
                         "Interpret the description as a dataset idea, business question, or SQL practice request. "

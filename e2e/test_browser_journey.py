@@ -245,7 +245,7 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
         ).to_be_visible()
         page.screenshot(path="/tmp/querylab-unified-home.png", full_page=True)
         page.get_by_role("button", name="Settings", exact=True).click()
-        page.locator("#guided").check()
+        expect(page.locator("#guided")).to_have_count(0)
         expect(page.locator("#generationSettings")).to_be_visible()
         page.get_by_role("button", name="Settings", exact=True).click()
         page.locator('[data-company="Airbnb"]').click()
@@ -253,6 +253,9 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
         page.locator("#description").fill("Count orders per customer")
         page.get_by_role("button", name="Continue", exact=True).click()
         expect(page.locator("#scopeText")).to_contain_text("Airbnb-inspired")
+        expect(page.locator("#scopeMode")).to_contain_text(
+            "Practice questions included"
+        )
         page.get_by_role("button", name="Edit scope", exact=True).click()
         expect(page.locator("#description")).to_have_value("Count orders per customer")
         page.locator('[data-company="Other"]').click()
@@ -268,6 +271,21 @@ def test_unified_entry_questions_and_return(live_server: str) -> None:
         )
         page.get_by_role("button", name="Continue", exact=True).click()
         expect(page.locator("#scopeText")).not_to_contain_text("Airbnb")
+        sent = []
+
+        def capture_generation(route):
+            sent.append(route.request.post_data_json)
+            route.fulfill(
+                status=400, json={"detail": "Generation intercepted for test"}
+            )
+
+        page.route("**/api/experiments/generate", capture_generation)
+        page.get_by_role("button", name="Generate session", exact=True).click()
+        expect(page.locator("#status")).to_contain_text(
+            "Generation intercepted for test"
+        )
+        assert sent[0]["guided"] is True
+        page.unroute("**/api/experiments/generate", capture_generation)
         page.get_by_role("button", name="Edit scope", exact=True).click()
         page.screenshot(path="/tmp/querylab-unified-setup.png", full_page=True)
         page.set_viewport_size({"width": 390, "height": 844})

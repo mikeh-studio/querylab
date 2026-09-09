@@ -32,6 +32,8 @@ No remaining actionable P0/P1/P2 visual differences were identified in the final
 
 Browser journeys exercise company presets, custom company context, clearing context, example prompts, Settings, editing the review step, mobile overflow, offline dataset creation, SQL execution, saved sessions, comparison, and evaluation. API tests use controlled provider output; no live LLM generation was performed during this change. This is visual and functional QA, not a complete accessibility audit or a claim of pixel-identical reproduction.
 
+Follow-up: practice questions are now included automatically in home-page generation, and the Settings checkbox was removed as requested. The updated browser journey verifies the submitted generation payload includes questions without opening Settings. All five browser journeys and the 17 experiment tests passed after this adjustment. The default home composition is unchanged.
+
 ## Completed checks
 
 - [x] Compare selected target with rendered desktop.

@@ -150,9 +150,9 @@ fill the composer; company tiles add an optional business context. The company
 section states: “Explore company-inspired scenarios with synthetic data generated
 by AI.” No real company records are supplied by these choices.
 
-Use **Settings** for the generation provider and optional practice questions.
-**Continue** opens a scope review before generation. The provider interprets a
-free-form prompt and includes questions when requested; inspect generated data
+Use **Settings** for the generation provider. Practice questions are included
+with every session generated from the home page. **Continue** opens a scope review
+before generation. The provider interprets your free-form prompt; inspect generated data
 and questions before relying on them. All starts open the same native DuckDB
 workspace with **Data**, **Questions**, **Compare**, and **Evaluate** tools.
 Add your own questions, save named SQL, and return through **Recent**. Correctness
