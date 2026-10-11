@@ -123,10 +123,17 @@ function bindEvents() {
   });
 }
 
+async function localSessionToken() {
+  const response = await fetch("/api/local-session", { cache: "no-store", credentials: "same-origin" });
+  if (!response.ok) throw new Error("Local session could not be established");
+  return (await response.json()).token;
+}
+
 async function fetchJson(url, options = {}) {
+  const token = await localSessionToken();
   const response = await fetch(url, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
+    headers: { "Content-Type": "application/json", ...options.headers, "X-Local-Session": token },
   });
   let payload;
   try {

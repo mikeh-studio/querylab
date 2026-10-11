@@ -5,7 +5,7 @@ import logging
 import time
 
 import pytest
-from fastapi.testclient import TestClient
+from local_client import LocalTestClient as TestClient
 
 from querylab.config import Settings
 from querylab.exercises import get_static_exercise_set

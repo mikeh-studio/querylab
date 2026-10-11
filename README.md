@@ -75,3 +75,9 @@ The code lives in `src/querylab`: `experiments` handles saved datasets and evalu
 ## Next
 
 Planned work includes file uploads, direct AI API connections, and external data sources. These are not available in the current app. See the [roadmap](docs/roadmap.md).
+
+### Local browser request boundary
+
+Use the app directly on `localhost`, `127.0.0.1`, or `[::1]` at its listening port. Non-loopback peers, other Host values, forwarded/proxy headers, cross-origin requests (including `null` origins and other local ports), and cross-site Fetch Metadata are rejected before handlers run. Remote and reverse-proxy access are unsupported; do not expose this app as a shared service without implementing authentication.
+
+The UI obtains a fresh process-session token from `GET /api/local-session` before API calls. Scripts must also obtain this token and supply it as `X-Local-Session` on mutations. The bootstrap is guarded and non-cacheable. Tokens rotate when the server restarts; failed mutations are never retried automatically. This protects against browser-origin attacks, not another process already running as the local user.

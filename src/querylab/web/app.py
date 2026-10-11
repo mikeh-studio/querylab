@@ -19,6 +19,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
+from querylab.web.local_boundary import LocalOnlyMiddleware
 from querylab import __version__
 from querylab.config import (
     Settings,
@@ -541,6 +542,7 @@ def create_app(
         redoc_url=None,
         lifespan=lifespan,
     )
+    application.add_middleware(LocalOnlyMiddleware)
     application.state.sessions = sessions
     application.state.history = history
     application.state.generation_jobs = generation_jobs
